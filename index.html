@@ -1375,6 +1375,8 @@
         }
 
 
+      
+
         // Fetch transactions from Firebase or local storage
         async function fetchTransactions() {
             try {
@@ -1382,45 +1384,46 @@
                     const transactionsCol = db.collection('transactions');
                     const snapshot = await transactionsCol.orderBy('date', 'desc').get({ source: 'server' });
                     
-                    // Filter dan validasi transaksi di sini
-                    transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(t => {
-                        // Pastikan t dan t.date ada dan valid sebelum memprosesnya
-                        const dateValue = t.date;
-                        if (!dateValue) {
-                            console.warn("Transaksi dengan ID", t.id, "memiliki nilai tanggal yang kosong atau null.");
-                            return false; // Jangan sertakan transaksi ini
+                    transactions = snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        // --- PERBAIKAN DI SINI ---
+                        // Jika data.date adalah instance dari Timestamp Firebase, konversi ke Date object
+                        if (data.date && typeof data.date.toDate === 'function') {
+                            data.date = data.date.toDate().toISOString(); // Konversi Timestamp ke Date, lalu ke ISO string
+                        } else if (data.date) {
+                            // Jika bukan Timestamp, coba konversi ke Date dan normalisasi ke ISO string
+                            const dateObject = new Date(data.date);
+                            if (!isNaN(dateObject.getTime())) {
+                                data.date = dateObject.toISOString();
+                            } else {
+                                console.warn("Transaksi dengan ID", doc.id, "memiliki nilai tanggal tidak valid (bukan Timestamp atau format salah):", data.date);
+                                data.date = null; // Set ke null atau default jika tidak valid
+                            }
+                        } else {
+                            data.date = null; // Pastikan null jika tidak ada tanggal
                         }
-                        const dateObject = new Date(dateValue);
-                        if (isNaN(dateObject.getTime())) { // Periksa apakah tanggal valid
-                            console.warn("Transaksi dengan ID", t.id, "memiliki nilai tanggal tidak valid:", dateValue);
-                            return false; // Jangan sertakan transaksi ini
-                        }
-                        // Anda bisa juga mengonversi t.date ke format ISO string di sini
-                        // atau pastikan dateObject.toISOString() tidak akan gagal
-                        t.date = dateObject.toISOString(); // Normalisasi format tanggal
-                        return true; // Sertakan transaksi yang valid
-                    });
+                        return { id: doc.id, ...data };
+                    }).filter(t => t.date !== null); // Filter transaksi yang tanggalnya menjadi null setelah pemrosesan
 
-                    // Save to local storage
                     localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions));
-                    console.log("Transaksi berhasil diambil dari Firebase."); // LOG SUCCESS
+                    console.log("Transaksi berhasil diambil dari Firebase.");
                 } else {
-                    // Fall back to local storage
                     transactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
-                    
-                    // Lakukan validasi yang sama untuk data lokal
+                    // Lakukan validasi serupa untuk data lokal jika ada kemungkinan timestamp di lokal
                     transactions = transactions.filter(t => {
-                        const dateValue = t.date;
-                        if (!dateValue) {
-                            console.warn("Transaksi lokal dengan ID", t.id, "memiliki nilai tanggal yang kosong atau null.");
-                            return false;
+                        if (t.date && typeof t.date.toDate === 'function') { // Jika entah bagaimana timestamp ada di lokal
+                            t.date = t.date.toDate().toISOString();
+                        } else if (t.date) {
+                            const dateObject = new Date(t.date);
+                            if (!isNaN(dateObject.getTime())) {
+                                t.date = dateObject.toISOString();
+                            } else {
+                                console.warn("Transaksi lokal dengan ID", t.id, "memiliki nilai tanggal tidak valid:", t.date);
+                                return false;
+                            }
+                        } else {
+                            return false; // Abaikan jika tanggal null atau kosong
                         }
-                        const dateObject = new Date(dateValue);
-                        if (isNaN(dateObject.getTime())) {
-                            console.warn("Transaksi lokal dengan ID", t.id, "memiliki nilai tanggal tidak valid:", dateValue);
-                            return false;
-                        }
-                        t.date = dateObject.toISOString(); // Normalisasi
                         return true;
                     });
                     console.log('Menggunakan data transaksi lokal.');
@@ -1430,21 +1433,92 @@
                 loadDashboard();
             } catch (error) {
                 console.error("Error fetching transactions:", error);
-                // Fall back to local storage dan coba load lagi
+                // Fallback yang lebih aman
                 transactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
-                transactions = transactions.filter(t => { // Validasi juga data lokal di sini jika error terjadi
+                transactions = transactions.filter(t => {
                     const dateValue = t.date;
                     if (!dateValue) return false;
                     const dateObject = new Date(dateValue);
                     return !isNaN(dateObject.getTime());
                 });
-                localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions)); // Simpan kembali yang sudah divalidasi
+                localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions));
                 
                 loadHistory();
                 loadDashboard();
-                alert("Gagal memuat transaksi dari database. Menggunakan data lokal. (Error: " + error.message + ")"); // Notifikasi lebih spesifik
+                alert("Gagal memuat transaksi dari database. Menggunakan data lokal. (Error: " + error.message + ")");
             }
         }
+
+        // Fetch pending transactions from Firebase or local storage
+        async function fetchPendingTransactions() {
+            try {
+                if (isOnline && settings.syncEnabled) {
+                    const pendingCol = db.collection('pendingTransactions');
+                    const snapshot = await pendingCol.get({ source: 'server' });
+                    
+                    pendingTransactions = snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        // --- PERBAIKAN DI SINI ---
+                        if (data.date && typeof data.date.toDate === 'function') {
+                            data.date = data.date.toDate().toISOString();
+                        } else if (data.date) {
+                            const dateObject = new Date(data.date);
+                            if (!isNaN(dateObject.getTime())) {
+                                data.date = dateObject.toISOString();
+                            } else {
+                                console.warn("Transaksi pending dengan ID", doc.id, "memiliki nilai tanggal tidak valid (bukan Timestamp atau format salah):", data.date);
+                                data.date = null;
+                            }
+                        } else {
+                            data.date = null;
+                        }
+                        return { id: doc.id, ...data };
+                    }).filter(t => t.date !== null);
+
+                    localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(pendingTransactions));
+                    console.log("Transaksi pending berhasil diambil dari Firebase.");
+                } else {
+                    pendingTransactions = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
+                    // Lakukan validasi serupa untuk data lokal
+                    pendingTransactions = pendingTransactions.filter(t => {
+                        if (t.date && typeof t.date.toDate === 'function') {
+                            t.date = t.date.toDate().toISOString();
+                        } else if (t.date) {
+                            const dateObject = new Date(t.date);
+                            if (!isNaN(dateObject.getTime())) {
+                                t.date = dateObject.toISOString();
+                            } else {
+                                console.warn("Transaksi pending lokal dengan ID", t.id, "memiliki nilai tanggal tidak valid:", t.date);
+                                return false;
+                            }
+                        } else {
+                            return false;
+                        }
+                        return true;
+                    });
+                    console.log('Menggunakan data transaksi pending lokal.');
+                }
+
+                updatePendingCount();
+                loadDashboard();
+            } catch (error) {
+                console.error("Error fetching pending transactions:", error);
+                pendingTransactions = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
+                pendingTransactions = pendingTransactions.filter(t => {
+                    const dateValue = t.date;
+                    if (!dateValue) return false;
+                    const dateObject = new Date(dateValue);
+                    return !isNaN(dateObject.getTime());
+                });
+                localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(pendingTransactions));
+
+                updatePendingCount();
+                loadDashboard();
+                alert("Gagal memuat transaksi pending dari database. Menggunakan data lokal. (Error: " + error.message + ")");
+            }
+        }
+
+
 
         // Load dashboard data
         function loadDashboard() {
