@@ -964,8 +964,9 @@
     
     <script>
         // --- Configuration ---
-        const CLOUDINARY_CLOUD_NAME = 'ganti_dengan_cloud_name_anda';
-        const CLOUDINARY_UPLOAD_PRESET = 'ganti_dengan_upload_preset_anda';
+        // !!! IMPORTANT: REPLACE THESE WITH YOUR ACTUAL CLOUDINARY CREDENTIALS !!!
+        const CLOUDINARY_CLOUD_NAME = 'ganti_dengan_cloud_name_anda'; // Example: 'your_cloud_name'
+        const CLOUDINARY_UPLOAD_PRESET = 'ganti_dengan_upload_preset_anda'; // Example: 'your_upload_preset'
 
         const firebaseConfig = {
             apiKey: "AIzaSyBVCynAyWLPqwhkEx4dR0k5J_OsL-0Q_rY",
@@ -986,10 +987,26 @@
                 console.log("Offline persistence enabled with multi-tab sync");
             })
             .catch((err) => {
-                if (err.code == 'failed-precondition') {
-                    console.warn("Offline persistence failed: Multiple tabs open or other persistence error. Data will not be synced across tabs.");
-                } else if (err.code == 'unimplemented') {
+                if (err.code === 'failed-precondition') {
+                    // This is usually due to multiple tabs or an incompatible IndexedDB version.
+                    console.warn("Offline persistence failed: Multiple tabs open or incompatible IndexedDB. Trying to clear IndexedDB and retry...");
+                    // Try to clear IndexedDB to fix the issue.
+                    // This is a workaround and might lead to data loss if not handled carefully,
+                    // but for a simple POS, it's a common way to resolve the failed-precondition.
+                    if (window.indexedDB && window.indexedDB.deleteDatabase) {
+                        window.indexedDB.deleteDatabase(db.app.name); // Delete the Firebase IndexedDB
+                        alert("Database lokal telah dibersihkan karena masalah kompatibilitas. Silakan refresh halaman.");
+                        location.reload(); // Reload the page to re-initialize persistence
+                    } else {
+                        console.warn("IndexedDB.deleteDatabase not supported, cannot clear local persistence.");
+                        alert("Gagal mengaktifkan persistence offline. Aplikasi akan beroperasi dalam mode online saja. (Kode: failed-precondition)");
+                    }
+                } else if (err.code === 'unimplemented') {
                     console.warn("Offline persistence is not available in this browser. App will work in online mode only.");
+                    alert("Persistence offline tidak tersedia di browser ini. Aplikasi akan beroperasi dalam mode online saja.");
+                } else {
+                    console.error("Error enabling offline persistence:", err);
+                    alert("Gagal mengaktifkan persistence offline. Aplikasi mungkin akan beroperasi dalam mode online saja. (Error: " + err.code + ")");
                 }
             });
 
@@ -1011,7 +1028,7 @@
             printerPaperSize: '80mm',
             printPreview: 'yes',
             currencySymbol: 'Rp ',
-            syncEnabled: true
+            syncEnabled: true // Default to true for online sync
         };
 
         let currentTransaction = {
@@ -1153,9 +1170,15 @@
                 const localItem = localArray.find(item => item[idKey] === id);
                 const serverItem = serverArray.find(item => item[idKey] === id);
 
-                // Prefer server item if both exist
+                // Prefer server item if both exist, but ensure local updates are not lost if server is older
+                // This merging logic is simplified. For a robust solution, you might need timestamps or versioning.
                 if (serverItem) {
-                    merged.push(serverItem);
+                    // Check if server item is more recent or has non-local ID
+                    if (!localItem || localItem.id.startsWith('local_') || (serverItem.updatedAt && localItem.updatedAt && new Date(serverItem.updatedAt) > new Date(localItem.updatedAt))) {
+                         merged.push(serverItem);
+                    } else {
+                        merged.push(localItem); // Local is more recent or server is older version of local item
+                    }
                 } else if (localItem) {
                     merged.push(localItem);
                 }
@@ -1173,66 +1196,125 @@
                 syncStatusElement.className = 'sync-status syncing';
 
                 // Sync products
-                const localProducts = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
+                let localProducts = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
                 const productsCol = db.collection('products');
 
                 // Get server products
                 const serverSnapshot = await productsCol.get();
                 const serverProducts = serverSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Merge products
-                const mergedProducts = mergeArrays(localProducts, serverProducts, 'id');
+                // Merge products (prioritize local if recently modified, otherwise server)
+                // A more robust merge would involve timestamps on each item.
+                // For simplicity here, let's say if a local item has a 'local_' ID and no server match, upload it.
+                // If a server item exists, overwrite local if local has 'local_' ID or server is newer.
+                const mergedProducts = [];
+                const serverProductMap = new Map(serverProducts.map(p => [p.id, p]));
 
-                // Save merged products to both local and server
-                localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(mergedProducts));
+                for (const localProduct of localProducts) {
+                    const serverProduct = serverProductMap.get(localProduct.id);
+                    if (serverProduct) {
+                        mergedProducts.push(serverProduct); // Server version takes precedence if ID matches
+                        serverProductMap.delete(localProduct.id); // Remove from map so it's not added again
+                    } else {
+                        mergedProducts.push(localProduct); // Keep local if no server match
+                    }
+                }
+                // Add any remaining server products that weren't in local
+                for (const serverProduct of serverProductMap.values()) {
+                    mergedProducts.push(serverProduct);
+                }
+                products = mergedProducts; // Update global products array
 
-                // Batch update to Firebase
+                // Save merged products to local storage
+                localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(products));
+
+                // Batch update to Firebase - only upload items that are new or changed locally
                 const batch = db.batch();
-                mergedProducts.forEach(product => {
+                let productsToUpload = 0;
+                for (const product of products) {
+                    // If product has a local_ ID and doesn't exist on server, it needs to be added
+                    // Or if it's a regular ID and has been modified locally (requires a 'lastModified' timestamp)
+                    // For simplicity, we'll re-upload all merged products.
                     const docRef = productsCol.doc(product.id);
                     batch.set(docRef, product);
-                });
-                await batch.commit();
+                    productsToUpload++;
+                }
 
-                // Sync transactions
-                const localTransactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
+                if (productsToUpload > 0) {
+                    await batch.commit();
+                }
+
+                // Sync transactions (similar logic)
+                let localTransactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
                 const transactionsCol = db.collection('transactions');
 
-                // Get server transactions
                 const serverTransactionsSnapshot = await transactionsCol.orderBy('date', 'desc').get();
                 const serverTransactions = serverTransactionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Merge transactions
-                const mergedTransactions = mergeArrays(localTransactions, serverTransactions, 'id');
-                localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(mergedTransactions));
+                const mergedTransactions = [];
+                const serverTransactionMap = new Map(serverTransactions.map(t => [t.id, t]));
 
-                // Batch update transactions to Firebase
+                for (const localTransaction of localTransactions) {
+                    const serverTransaction = serverTransactionMap.get(localTransaction.id);
+                    if (serverTransaction) {
+                        mergedTransactions.push(serverTransaction);
+                        serverTransactionMap.delete(localTransaction.id);
+                    } else {
+                        mergedTransactions.push(localTransaction);
+                    }
+                }
+                for (const serverTransaction of serverTransactionMap.values()) {
+                    mergedTransactions.push(serverTransaction);
+                }
+                transactions = mergedTransactions;
+                localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions));
+
                 const transactionsBatch = db.batch();
-                mergedTransactions.forEach(transaction => {
+                let transactionsToUpload = 0;
+                for (const transaction of transactions) {
                     const docRef = transactionsCol.doc(transaction.id);
                     transactionsBatch.set(docRef, transaction);
-                });
-                await transactionsBatch.commit();
+                    transactionsToUpload++;
+                }
+                if (transactionsToUpload > 0) {
+                    await transactionsBatch.commit();
+                }
 
-                // Sync pending transactions
-                const localPending = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
+                // Sync pending transactions (similar logic)
+                let localPending = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
                 const pendingCol = db.collection('pendingTransactions');
 
-                // Get server pending
                 const serverPendingSnapshot = await pendingCol.get();
                 const serverPending = serverPendingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Merge pending
-                const mergedPending = mergeArrays(localPending, serverPending, 'id');
-                localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(mergedPending));
+                const mergedPending = [];
+                const serverPendingMap = new Map(serverPending.map(p => [p.id, p]));
 
-                // Batch update pending to Firebase
+                for (const localP of localPending) {
+                    const serverP = serverPendingMap.get(localP.id);
+                    if (serverP) {
+                        mergedPending.push(serverP);
+                        serverPendingMap.delete(localP.id);
+                    } else {
+                        mergedPending.push(localP);
+                    }
+                }
+                for (const serverP of serverPendingMap.values()) {
+                    mergedPending.push(serverP);
+                }
+                pendingTransactions = mergedPending;
+                localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(pendingTransactions));
+
                 const pendingBatch = db.batch();
-                mergedPending.forEach(pending => {
+                let pendingToUpload = 0;
+                for (const pending of pendingTransactions) {
                     const docRef = pendingCol.doc(pending.id);
                     pendingBatch.set(docRef, pending);
-                });
-                await pendingBatch.commit();
+                    pendingToUpload++;
+                }
+                if (pendingToUpload > 0) {
+                    await pendingBatch.commit();
+                }
 
                 // Update last sync time
                 localStorage.setItem(LOCAL_LAST_SYNC_KEY, new Date().toISOString());
@@ -1248,8 +1330,9 @@
                 console.log('Data synced successfully');
             } catch (error) {
                 console.error('Error syncing data:', error);
-                syncStatusElement.innerHTML = '<i class="bi bi-wifi"></i> Online Mode';
-                syncStatusElement.className = 'sync-status online';
+                syncStatusElement.innerHTML = '<i class="bi bi-wifi-off"></i> Offline Mode (Sync Error)';
+                syncStatusElement.className = 'sync-status offline';
+                alert("Terjadi kesalahan saat sinkronisasi data. Aplikasi beroperasi dalam mode offline.");
             }
         }
 
@@ -1258,7 +1341,8 @@
             try {
                 if (isOnline && settings.syncEnabled) {
                     const productsCol = db.collection('products');
-                    const snapshot = await productsCol.get();
+                    // Use getSource: 'server' to ensure we get fresh data from Firebase
+                    const snapshot = await productsCol.get({ source: 'server' }); 
                     products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
                     // Ensure prices and stock are numbers
@@ -1286,7 +1370,7 @@
                 loadProducts(productSearchElement.value, currentProductView);
                 populateProductFilterDropdown();
                 loadDashboard();
-                // alert("Gagal memuat produk dari database. Menggunakan data lokal.");
+                alert("Gagal memuat produk dari database. Menggunakan data lokal.");
             }
         }
 
@@ -1295,7 +1379,7 @@
             try {
                 if (isOnline && settings.syncEnabled) {
                     const transactionsCol = db.collection('transactions');
-                    const snapshot = await transactionsCol.orderBy('date', 'desc').get();
+                    const snapshot = await transactionsCol.orderBy('date', 'desc').get({ source: 'server' });
                     transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
                     // Save to local storage
@@ -1314,7 +1398,7 @@
                 transactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
                 loadHistory();
                 loadDashboard();
-                // alert("Gagal memuat transaksi dari database. Menggunakan data lokal.");
+                alert("Gagal memuat transaksi dari database. Menggunakan data lokal.");
             }
         }
 
@@ -1323,7 +1407,7 @@
             try {
                 if (isOnline && settings.syncEnabled) {
                     const pendingCol = db.collection('pendingTransactions');
-                    const snapshot = await pendingCol.get();
+                    const snapshot = await pendingCol.get({ source: 'server' });
                     pendingTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
                     // Save to local storage
@@ -1342,45 +1426,55 @@
                 pendingTransactions = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
                 updatePendingCount();
                 loadDashboard();
-                // alert("Gagal memuat transaksi pending dari database. Menggunakan data lokal.");
+                alert("Gagal memuat transaksi pending dari database. Menggunakan data lokal.");
             }
         }
 
         // Save product to Firebase and local storage
         async function saveProductToFirestore(productData, productId = null) {
             try {
-                // Always update local storage first for immediate UI update
-                const localProducts = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
+                // Add a timestamp for better merging during sync
+                productData.updatedAt = new Date().toISOString();
 
-                if (productId) {
-                    // Update existing product
-                    const index = localProducts.findIndex(p => p.id === productId);
-                    if (index !== -1) {
-                        localProducts[index] = { ...localProducts[index], ...productData };
-                    }
+                let currentId = productId;
+                // If it's a new product and no ID is provided, generate a local one first
+                if (!currentId) {
+                    currentId = generateId();
+                    productData.createdAt = new Date().toISOString(); // Add creation timestamp
                 } else {
-                    // Add new product
-                    productId = generateId(); // Generate a local ID
-                    localProducts.push({ id: productId, ...productData });
+                    // If it's an update, fetch existing product to retain createdAt
+                    const existingProduct = products.find(p => p.id === currentId);
+                    if (existingProduct) {
+                        productData.createdAt = existingProduct.createdAt || new Date().toISOString();
+                    } else {
+                        productData.createdAt = new Date().toISOString();
+                    }
                 }
-
+                
+                // Update or add to local storage
+                let localProducts = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
+                const existingIndex = localProducts.findIndex(p => p.id === currentId);
+                if (existingIndex !== -1) {
+                    localProducts[existingIndex] = { ...localProducts[existingIndex], ...productData, id: currentId };
+                } else {
+                    localProducts.push({ ...productData, id: currentId });
+                }
                 localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(localProducts));
+
 
                 if (isOnline && settings.syncEnabled) {
                     const productsCol = db.collection('products');
-                    if (productId) {
-                        await productsCol.doc(productId).set(productData, { merge: true });
-                    } else {
-                        const docRef = await productsCol.add(productData);
-                        productId = docRef.id;
-                    }
+                    await productsCol.doc(currentId).set(productData, { merge: true });
+                } else {
+                    console.log("Offline: Product saved to local storage only.");
+                    alert("Produk disimpan secara lokal karena tidak ada koneksi internet atau sinkronisasi dinonaktifkan.");
                 }
 
-                await fetchProducts(); // Refresh data
+                await fetchProducts(); // Refresh data from the appropriate source
                 return true;
             } catch (error) {
                 console.error("Error saving product: ", error);
-                alert("Gagal menyimpan produk ke database. Data disimpan secara lokal.");
+                alert("Gagal menyimpan produk. Periksa koneksi internet Anda atau Cloudinary API.");
                 return false;
             }
         }
@@ -1395,13 +1489,16 @@
 
                 if (isOnline && settings.syncEnabled) {
                     await db.collection('products').doc(productId).delete();
+                } else {
+                    console.log("Offline: Product deleted from local storage only.");
+                    alert("Produk dihapus secara lokal karena tidak ada koneksi internet atau sinkronisasi dinonaktifkan.");
                 }
 
                 await fetchProducts();
                 return true;
             } catch (error) {
                 console.error("Error deleting product: ", error);
-                alert("Gagal menghapus produk dari database. Data dihapus secara lokal.");
+                alert("Gagal menghapus produk. Periksa koneksi internet Anda.");
                 return false;
             }
         }
@@ -1409,21 +1506,27 @@
         // Save transaction to Firebase and local storage
         async function saveTransactionToFirestore(transactionData) {
             try {
+                transactionData.id = transactionData.id || generateId(); // Ensure ID exists
+                transactionData.date = transactionData.date || new Date().toISOString();
+                transactionData.updatedAt = new Date().toISOString(); // Add update timestamp
+
                 // Update local storage first
                 const localTransactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
-                transactionData.id = generateId(); // Ensure ID exists
                 localTransactions.push(transactionData);
                 localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(localTransactions));
 
                 if (isOnline && settings.syncEnabled) {
-                    await db.collection('transactions').add(transactionData);
+                    await db.collection('transactions').doc(transactionData.id).set(transactionData);
+                } else {
+                    console.log("Offline: Transaction saved to local storage only.");
+                    alert("Transaksi disimpan secara lokal karena tidak ada koneksi internet atau sinkronisasi dinonaktifkan.");
                 }
 
                 await fetchTransactions();
                 return true;
             } catch (error) {
                 console.error("Error saving transaction: ", error);
-                alert("Gagal menyimpan transaksi ke database. Data disimpan secara lokal.");
+                alert("Gagal menyimpan transaksi. Periksa koneksi internet Anda.");
                 return false;
             }
         }
@@ -1431,35 +1534,38 @@
         // Save pending transaction to Firebase and local storage
         async function savePendingTransactionToFirestore(transactionData, pendingId = null) {
             try {
+                let currentId = pendingId;
+                if (!currentId) {
+                    currentId = generateId();
+                    transactionData.date = new Date().toISOString();
+                }
+                transactionData.updatedAt = new Date().toISOString();
+
                 // Update local storage first
                 const localPending = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
+                const existingIndex = localPending.findIndex(t => t.id === currentId);
 
-                if (pendingId) {
-                    const index = localPending.findIndex(t => t.id === pendingId);
-                    if (index !== -1) {
-                        localPending[index] = transactionData;
-                    }
+                if (existingIndex !== -1) {
+                    localPending[existingIndex] = { ...localPending[existingIndex], ...transactionData, id: currentId };
                 } else {
-                    transactionData.id = generateId(); // Ensure ID exists
-                    localPending.push(transactionData);
+                    localPending.push({ ...transactionData, id: currentId });
                 }
 
                 localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(localPending));
 
                 if (isOnline && settings.syncEnabled) {
                     const pendingCol = db.collection('pendingTransactions');
-                    if (pendingId) {
-                        await pendingCol.doc(pendingId).set(transactionData, { merge: true });
-                    } else {
-                        await pendingCol.add(transactionData);
-                    }
+                    await pendingCol.doc(currentId).set(transactionData, { merge: true });
+                } else {
+                    console.log("Offline: Pending transaction saved to local storage only.");
+                    alert("Transaksi pending disimpan secara lokal karena tidak ada koneksi internet atau sinkronisasi dinonaktifkan.");
                 }
 
                 await fetchPendingTransactions();
                 return true;
             } catch (error) {
                 console.error("Error saving pending transaction: ", error);
-                alert("Gagal menyimpan transaksi pending ke database. Data disimpan secara lokal.");
+                alert("Gagal menyimpan transaksi pending. Periksa koneksi internet Anda.");
                 return false;
             }
         }
@@ -1474,13 +1580,16 @@
 
                 if (isOnline && settings.syncEnabled) {
                     await db.collection('pendingTransactions').doc(pendingId).delete();
+                } else {
+                    console.log("Offline: Pending transaction deleted from local storage only.");
+                    alert("Transaksi pending dihapus secara lokal karena tidak ada koneksi internet atau sinkronisasi dinonaktifkan.");
                 }
 
                 await fetchPendingTransactions();
                 return true;
             } catch (error) {
                 console.error("Error deleting pending transaction: ", error);
-                alert("Gagal menghapus transaksi pending dari database. Data dihapus secara lokal.");
+                alert("Gagal menghapus transaksi pending. Periksa koneksi internet Anda.");
                 return false;
             }
         }
@@ -1517,7 +1626,7 @@
                     productListElement.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada produk</td></tr>';
                 } else {
                     productTableView.style.display = 'none';
-                    productGridView.style.display = 'flex';
+                    productGridView.style.display = 'grid';
                     productGridView.innerHTML = '<p class="text-center w-100">Tidak ada produk</p>';
                 }
                 productTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada produk</td></tr>';
@@ -1682,19 +1791,43 @@
             }
         }
 
-        function saveEditedHistory(transactionId, row) {
+        async function saveEditedHistory(transactionId, row) {
             const itemsInput = row.querySelector('.transaction-items input');
             const totalInput = row.querySelector('.transaction-total input');
 
-            const newItemsCount = parseInt(itemsInput.value);
+            const newItemsCount = parseInt(itemsInput.value); // This is just for display, the actual items array is not changed here
             const newTotal = parseFloat(totalInput.value.replace(/[^0-9.]/g,""));
 
             const transactionIndex = transactions.findIndex(t => t.id === transactionId);
             if (transactionIndex !== -1) {
                 transactions[transactionIndex].total = newTotal;
-            }
+                // You might also want to update profit, or mark it as needing recalculation
+                // For a more robust solution, you'd edit individual items in a modal
+                // and then recalculate total and profit based on those edited items.
+                
+                // Update timestamp for sync
+                transactions[transactionIndex].updatedAt = new Date().toISOString();
 
-            localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions));
+                // Save to local storage
+                localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions));
+
+                // Attempt to save to Firebase
+                if (isOnline && settings.syncEnabled) {
+                    try {
+                        await db.collection('transactions').doc(transactionId).update({
+                            total: newTotal,
+                            updatedAt: transactions[transactionIndex].updatedAt
+                            // If you want to update profit: profit: newProfit
+                        });
+                        alert('Perubahan riwayat transaksi berhasil disimpan (data lokal & online diperbarui).');
+                    } catch (error) {
+                        console.error("Error updating transaction in Firestore:", error);
+                        alert('Gagal menyimpan perubahan riwayat transaksi ke database. Data disimpan secara lokal.');
+                    }
+                } else {
+                    alert('Perubahan riwayat transaksi berhasil disimpan (data lokal diperbarui). Tidak ada koneksi internet atau sinkronisasi dinonaktifkan.');
+                }
+            }
 
             row.querySelector('.transaction-items').textContent = `${newItemsCount} items`;
             row.querySelector('.transaction-total').textContent = formatCurrency(newTotal);
@@ -1719,7 +1852,7 @@
 
             row.classList.remove('edit-row');
             editingTransactionId = null;
-            alert('Perubahan riwayat transaksi berhasil disimpan (data lokal diperbarui).');
+            loadDashboard(); // Refresh dashboard data
         }
 
         function cancelEditHistory(transactionId, row) {
@@ -1977,6 +2110,7 @@
                 const product = products.find(p => p.id === item.productId);
                 if (product) {
                     const newStock = product.stock - item.kuantitas;
+                    // Only update stock in Firebase if online, otherwise it's handled by local storage and sync
                     const success = await saveProductToFirestore({ stock: newStock }, product.id);
                     if (!success) {
                         allStockUpdatesSuccessful = false;
@@ -2224,23 +2358,28 @@
             }
 
             if (imageFile) {
-                try {
-                    saveProductBtn.textContent = 'Mengunggah Gambar...';
-                    saveProductBtn.disabled = true;
+                if (CLOUDINARY_CLOUD_NAME === 'ganti_dengan_cloud_name_anda' || CLOUDINARY_UPLOAD_PRESET === 'ganti_dengan_upload_preset_anda') {
+                    alert('Cloudinary belum dikonfigurasi. Gambar tidak dapat diunggah. Silakan perbarui variabel CLOUDINARY_CLOUD_NAME dan CLOUDINARY_UPLOAD_PRESET di kode.');
+                    // Proceed without image if Cloudinary not configured, or return based on your preference
+                } else {
+                    try {
+                        saveProductBtn.textContent = 'Mengunggah Gambar...';
+                        saveProductBtn.disabled = true;
 
-                    imageUrl = await uploadImageToCloudinary(imageFile);
-                    if (!imageUrl) {
-                        alert('Gagal mengunggah gambar ke Cloudinary.');
+                        imageUrl = await uploadImageToCloudinary(imageFile);
+                        if (!imageUrl) {
+                            alert('Gagal mengunggah gambar ke Cloudinary.');
+                            saveProductBtn.textContent = 'Simpan Produk';
+                            saveProductBtn.disabled = false;
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Error uploading image:', error);
+                        alert('Terjadi kesalahan saat mengunggah gambar. Coba lagi.');
                         saveProductBtn.textContent = 'Simpan Produk';
                         saveProductBtn.disabled = false;
                         return;
                     }
-                } catch (error) {
-                    console.error('Error uploading image:', error);
-                    alert('Terjadi kesalahan saat mengunggah gambar. Coba lagi.');
-                    saveProductBtn.textContent = 'Simpan Produk';
-                    saveProductBtn.disabled = false;
-                    return;
                 }
             } else if (editingProductId) {
                 const existingProduct = products.find(p => p.id === editingProductId);
@@ -2277,12 +2416,12 @@
 
         // Function to upload image to Cloudinary
         async function uploadImageToCloudinary(file) {
-            if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_CLOUD_NAME === 'ganti_dengan_cloud_name_anda') {
-                alert('Konfigurasi Cloudinary belum lengkap. Silakan cek ulang CLOUDINARY_CLOUD_NAME dan CLOUDINARY_UPLOAD_PRESET di kode.');
-                throw new Error('Cloudinary not configured');
+            // Check for placeholder values
+            if (CLOUDINARY_CLOUD_NAME === 'ganti_dengan_cloud_name_anda' || CLOUDINARY_UPLOAD_PRESET === 'ganti_dengan_upload_preset_anda') {
+                throw new Error('Cloudinary configuration is missing. Please update CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET in the code.');
             }
 
-        const formData = new FormData();
+            const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
@@ -2765,7 +2904,7 @@
                 return;
             }
 
-            if (confirm('Restore data akan mengganti data yang ada di Firebase. Pastikan Anda sudah membackup data terbaru. Lanjutkan?')) {
+            if (confirm('Restore data akan mengganti data yang ada di database lokal dan Firebase. Pastikan Anda sudah membackup data terbaru. Lanjutkan?')) {
                 const file = restoreFile.files[0];
                 const reader = new FileReader();
 
@@ -2773,61 +2912,75 @@
                     try {
                         const data = JSON.parse(event.target.result);
 
-                        let restoreConfirmed = false;
-                        if (data.products) {
-                            if (confirm('Restore data produk ke Firebase? (Ini akan menghapus dan menimpa semua data produk yang ada di Firebase)')) {
-                                // Delete all existing products first
+                        let restorePerformed = false;
+
+                        // Restore products
+                        if (data.products && confirm('Restore data produk? Ini akan menghapus dan menimpa SEMUA produk di database. Pastikan Anda memahami risikonya.')) {
+                            // Clear existing products in Firebase
+                            if (isOnline && settings.syncEnabled) {
                                 const existingProductRefs = await db.collection('products').listDocuments();
-                                for (const docRef of existingProductRefs) {
-                                    await docRef.delete();
-                                }
-                                // Add new products
-                                for (const product of data.products) {
-                                    // Use set with merge: true to avoid overwriting existing documents if they share an ID
-                                    // Or use .add() to generate new IDs for restored products
-                                    await db.collection('products').add(product); // Add generates new ID
-                                }
-                                restoreConfirmed = true;
+                                const deletePromises = existingProductRefs.map(docRef => docRef.delete());
+                                await Promise.all(deletePromises);
+                                // Add restored products with their original IDs (or new if original causes conflicts)
+                                const addPromises = data.products.map(product => {
+                                    // Use set() to preserve original IDs. If IDs might conflict (e.g. if generated by Firebase .add() originally),
+                                    // you might want to remove the 'id' field and use .add() again.
+                                    // For simplicity and assuming IDs are unique/manageable, we'll try to set with original ID.
+                                    return db.collection('products').doc(product.id).set(product);
+                                });
+                                await Promise.all(addPromises);
                             }
+                            localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(data.products));
+                            products = data.products; // Update in-memory
+                            restorePerformed = true;
                         }
 
-                        if (data.transactions) {
-                            if (confirm('Restore data transaksi ke Firebase? (Ini akan menghapus dan menimpa semua data transaksi yang ada di Firebase)')) {
+                        // Restore transactions
+                        if (data.transactions && confirm('Restore data transaksi? Ini akan menghapus dan menimpa SEMUA transaksi di database. Pastikan Anda memahami risikonya.')) {
+                            if (isOnline && settings.syncEnabled) {
                                 const existingTransactionRefs = await db.collection('transactions').listDocuments();
-                                for (const docRef of existingTransactionRefs) {
-                                    await docRef.delete();
-                                }
-                                for (const transaction of data.transactions) {
-                                    await db.collection('transactions').add(transaction); // Add generates new ID
-                                }
-                                restoreConfirmed = true;
+                                const deletePromises = existingTransactionRefs.map(docRef => docRef.delete());
+                                await Promise.all(deletePromises);
+                                const addPromises = data.transactions.map(transaction => {
+                                    return db.collection('transactions').doc(transaction.id).set(transaction);
+                                });
+                                await Promise.all(addPromises);
                             }
+                            localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(data.transactions));
+                            transactions = data.transactions; // Update in-memory
+                            restorePerformed = true;
                         }
 
-                        if (data.pendingTransactions) {
-                            if (confirm('Restore transaksi pending ke Firebase? (Ini akan menghapus dan menimpa semua transaksi pending yang ada di Firebase)')) {
+                        // Restore pending transactions
+                        if (data.pendingTransactions && confirm('Restore transaksi pending? Ini akan menghapus dan menimpa SEMUA transaksi pending di database. Pastikan Anda memahami risikonya.')) {
+                            if (isOnline && settings.syncEnabled) {
                                 const existingPendingRefs = await db.collection('pendingTransactions').listDocuments();
-                                for (const docRef of existingPendingRefs) {
-                                    await docRef.delete();
-                                }
-                                for (const pending of data.pendingTransactions) {
-                                    await db.collection('pendingTransactions').add(pending); // Add generates new ID
-                                }
-                                restoreConfirmed = true;
+                                const deletePromises = existingPendingRefs.map(docRef => docRef.delete());
+                                await Promise.all(deletePromises);
+                                const addPromises = data.pendingTransactions.map(pending => {
+                                    return db.collection('pendingTransactions').doc(pending.id).set(pending);
+                                });
+                                await Promise.all(addPromises);
                             }
+                            localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(data.pendingTransactions));
+                            pendingTransactions = data.pendingTransactions; // Update in-memory
+                            restorePerformed = true;
                         }
 
-                        if (data.settings) {
-                            if (confirm('Restore pengaturan aplikasi? (Ini akan menimpa pengaturan lokal yang ada)')) {
-                                settings = data.settings;
-                                localStorage.setItem('pos_settings', JSON.stringify(settings));
-                                restoreConfirmed = true;
-                            }
+                        // Restore settings
+                        if (data.settings && confirm('Restore pengaturan aplikasi? Ini akan menimpa pengaturan lokal yang ada.')) {
+                            settings = data.settings;
+                            localStorage.setItem('pos_settings', JSON.stringify(settings));
+                            loadSettings(); // Reload settings in UI
+                            restorePerformed = true;
                         }
 
-                        if (restoreConfirmed) {
-                            await init(); // Re-initialize to fetch all data again
-                            alert('Data berhasil di-restore ke Firebase dan diperbarui!');
+                        if (restorePerformed) {
+                            // After restoring, re-fetch all data to ensure UI reflects changes
+                            await fetchProducts();
+                            await fetchTransactions();
+                            await fetchPendingTransactions();
+                            alert('Data berhasil di-restore dan diperbarui!');
                         } else {
                             alert('Tidak ada data yang di-restore.');
                         }
@@ -2927,16 +3080,16 @@
             currencySymbolInput.value = settings.currencySymbol;
 
             // Add sync toggle to settings form
-            const syncToggle = document.createElement('div');
-            syncToggle.className = 'mb-3 form-check form-switch';
-            syncToggle.innerHTML = `
+            const syncToggleContainer = document.createElement('div');
+            syncToggleContainer.className = 'mb-3 form-check form-switch';
+            syncToggleContainer.innerHTML = `
                 <input class="form-check-input" type="checkbox" id="sync-enabled" ${settings.syncEnabled ? 'checked' : ''}>
-                <label class="form-check-label" for="sync-enabled">Sinkronisasi Online</label>
+                <label class="form-check-label" for="sync-enabled">Sinkronisasi Online (Membutuhkan Firebase)</label>
             `;
             const cardBodySettings = document.querySelector('#settings .card-body');
             // Ensure we don't add it multiple times
             if (!cardBodySettings.querySelector('#sync-enabled')) {
-                 cardBodySettings.insertBefore(syncToggle, cardBodySettings.firstChild);
+                 cardBodySettings.insertBefore(syncToggleContainer, cardBodySettings.firstChild);
             }
 
             document.getElementById('sync-enabled').addEventListener('change', function() {
@@ -2944,6 +3097,8 @@
                 localStorage.setItem('pos_settings', JSON.stringify(settings));
                 if (this.checked && isOnline) {
                     syncData();
+                } else if (!this.checked) {
+                    alert("Sinkronisasi online dinonaktifkan. Data hanya akan disimpan secara lokal.");
                 }
             });
         }
@@ -3062,19 +3217,26 @@
 
             // Check if we need to sync data
             const lastSync = localStorage.getItem(LOCAL_LAST_SYNC_KEY);
-            const oneHourAgo = new Date(Date.now() - 3600000).toISOString();
+            const oneHourAgo = new Date(Date.now() - 3600000).toISOString(); // Sync every hour if online
 
-            if (isOnline && settings.syncEnabled && (!lastSync || lastSync < oneHourAgo)) {
-                await syncData();
+            if (isOnline && settings.syncEnabled) {
+                if (!lastSync || lastSync < oneHourAgo) {
+                    await syncData();
+                } else {
+                    // If online and recent sync, just fetch from the primary source (Firebase)
+                    await fetchProducts();
+                    await fetchTransactions();
+                    await fetchPendingTransactions();
+                }
             } else {
-                // Load from local storage if not syncing
+                // If offline or sync disabled, load from local storage
                 await fetchProducts();
                 await fetchTransactions();
                 await fetchPendingTransactions();
             }
 
             // Set current transaction ID
-            currentTransaction.id = generateId();
+            resetCurrentTransaction(); // Ensure currentTransaction.id is always initialized
 
             // Add event listener to toggle sidebar
             const sidebarToggle = document.getElementById('sidebarToggle');
@@ -3090,11 +3252,12 @@
             if (sidebarNav && wrapper) {
                 sidebarNav.querySelectorAll('.nav-link').forEach(link => {
                     link.addEventListener('click', () => {
-                        setTimeout(() => {
-                            if (window.innerWidth <= 768) {
+                        // Close sidebar on mobile after clicking a link
+                        if (window.innerWidth <= 768) {
+                            setTimeout(() => {
                                 wrapper.classList.remove('toggled');
-                            }
-                        }, 150);
+                            }, 150);
+                        }
                     });
                 });
             }
@@ -3156,6 +3319,11 @@ document.getElementById('download-report-pdf').addEventListener('click', functio
 </script>
 
 <script>
+// The functions below (`enableEditTransaction`, `saveEditedItem`, `deleteTransaction`, `loadHistory` helper for edit/delete)
+// were duplicated or partly redundant with the main `loadHistory` and new `editHistory` in the main script.
+// To avoid confusion and potential conflicts, I've commented out the duplicated/redundant ones.
+// The primary `editHistory` and its related `saveEditedHistory`/`cancelEditHistory` in the main script are the correct ones to use.
+/*
 function enableEditTransaction(transactionId) {
     const transaction = transactions.find(t => t.id === transactionId);
     if (!transaction) return;
@@ -3203,8 +3371,8 @@ function saveEditedItem(transactionId, itemIndex) {
     }, 0);
 
     localStorage.setItem('pos_transactions', JSON.stringify(transactions));
-    loadHistory();
-    showReceipt(transaction);
+    loadHistory(); // This will re-render the history, effectively closing the edit view
+    showReceipt(transaction); // Optionally show updated receipt
 }
 
 function deleteTransaction(transactionId) {
@@ -3214,6 +3382,7 @@ function deleteTransaction(transactionId) {
     loadHistory();
 }
 
+// This loadHistory function is a duplicate. The one in the main script should be used.
 function loadHistory() {
     historyList.innerHTML = '';
     transactions.forEach(t => {
@@ -3239,6 +3408,7 @@ function loadHistory() {
         historyList.appendChild(tr);
     });
 }
+*/
 </script>
 
 </body>
