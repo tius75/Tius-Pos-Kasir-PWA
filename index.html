@@ -1028,56 +1028,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.js"></script>
 
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     
 
-   <script type="module">
-  // Import fungsi yang kita butuhkan dari URL Firebase
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-
-  // Bagian ini dari screenshot Anda, sudah benar
-  const CLOUDINARY_CLOUD_NAME = 'ganti_dengan_cloud_name_anda';
-  const CLOUDINARY_UPLOAD_PRESET = 'ganti_dengan_upload_preset_anda';
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCYnkyNLPqwbHwKExdRDmK53_DSL-BQ_rt",
-    authDomain: "kasir-toko-70d61.firebaseapp.com",
-    projectId: "kasir-toko-70d61",
-    storageBucket: "kasir-toko-70d61.appspot.com",
-    messagingSenderId: "1057810583954",
-    appId: "1:1057810583954:web:788e1058ad4a07e8b4f14b"
-  };
-
-  // ==========================================================
-  // INI BAGIAN PENTING YANG PERLU DITAMBAHKAN
-  // ==========================================================
-
-  // Inisialisasi Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  console.log("Firebase berhasil diinisialisasi dengan gaya modern!"); // Pesan untuk debugging
-
-  // ... Letakkan sisa kode JavaScript Anda yang lain di sini ...
-  // (Misalnya kode untuk login, menampilkan produk, dll)
-
-
+  
+  
+  
       
 
        
-// Gunakan fungsi ini sebagai pengganti enablePersistence
-enableMultiTabIndexedDbPersistence(db)
-  .catch((err) => {
-      if (err.code == 'failed-precondition') {
-          // Ini terjadi jika beberapa tab dibuka dengan pengaturan persistensi yang berbeda.
-          console.error("Gagal mengaktifkan persistensi multi-tab. Pastikan semua tab menggunakan pengaturan yang sama.", err);
-      } else if (err.code == 'unimplemented') {
-          // Browser tidak mendukung fitur ini.
-          console.error("Browser ini tidak mendukung persistensi offline.", err);
-      } else {
-          console.error("Gagal mengaktifkan persistensi offline.", err);
-      }
-  });
+
 
         // Local storage keys
         const LOCAL_PRODUCTS_KEY = 'pos_products';
@@ -3257,69 +3219,62 @@ enableMultiTabIndexedDbPersistence(db)
 
     </script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-
-        const firebaseAuthConfig = { // Renamed to avoid conflict with main firebaseConfig
-            apiKey: "AIzaSyBVCynAyWLPqwhkEx4dR0k5J_OsL-0Q_rY",
+   <script>
+        // Inisialisasi Firebase HANYA SATU KALI DI SINI
+        const firebaseAuthConfig = {
+            apiKey: "AIzaSyBVCynAyWLPqwhkEx4dR0k5J_OsL-0Q_rY", // Gunakan API Key Anda yang benar
             authDomain: "kasir-toko-70d61.firebaseapp.com",
             projectId: "kasir-toko-70d61",
-            storageBucket: "kasir-toko-70d61.firebasestorage.app",
+            storageBucket: "kasir-toko-70d61.appspot.com",
             messagingSenderId: "1057810583954",
-            appId: "1:1057810583954:web:788e1058ad4a07eb84f14b"
+            appId: "1:1057810583954:web:788e1058ad4a07e8b4f14b"
         };
+        firebase.initializeApp(firebaseAuthConfig);
 
-        const app = initializeApp(firebaseAuthConfig);
-        const auth = getAuth(app);
+        const auth = firebase.auth();
 
+        // Listener untuk form login
         document.getElementById("login-form").addEventListener("submit", (e) => {
             e.preventDefault();
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
-            signInWithEmailAndPassword(auth, email, password)
+            auth.signInWithEmailAndPassword(email, password)
                 .then(() => location.reload())
                 .catch(err => alert("Login gagal: " + err.message));
         });
 
-        onAuthStateChanged(auth, user => {
+        // Listener untuk status login (menampilkan/menyembunyikan halaman)
+        auth.onAuthStateChanged(user => {
             const loginContainer = document.getElementById("login-container");
-            const mainContent = document.querySelector(".main-content");
             const navBar = document.querySelector(".navbar");
             const wrapper = document.getElementById("wrapper");
-            const mobileFooterNav = document.querySelector('.mobile-footer-nav'); // Get the mobile footer nav
+            const mobileFooterNav = document.querySelector('.mobile-footer-nav');
 
             if (user) {
+                // Jika user login, tampilkan aplikasi dan sembunyikan login
                 if (loginContainer) loginContainer.style.display = "none";
-                if (mainContent) mainContent.style.display = "block";
-                // Show navbar only on mobile, hide on desktop (handled by CSS @media)
-                if (navBar) navBar.style.display = window.innerWidth <= 768 ? "flex" : "none";
-                if (wrapper) wrapper.style.display = "flex"; // Show wrapper
-
-                // Show mobile footer nav on mobile, hide on desktop (handled by CSS @media)
-                if (mobileFooterNav) mobileFooterNav.style.display = window.innerWidth <= 768 ? "flex" : "none";
-
-
-                // Call init only once after successful login and DOM is ready
-                // This check for typeof init === 'function' and DOMContentLoaded ensures init runs correctly
-                if (document.readyState === 'loading') { // Loading, wait for DOMContentLoaded
-                    document.addEventListener('DOMContentLoaded', init);
-                } else { // Already loaded, run init immediately
-                    if (typeof init === 'function') init();
+                if (navBar) navBar.style.display = ""; // Kembalikan ke default CSS
+                if (wrapper) wrapper.style.display = ""; // Kembalikan ke default CSS
+                if (mobileFooterNav) mobileFooterNav.style.display = ""; // Kembalikan ke default CSS
+                
+                // Panggil init() setelah berhasil login
+                if (typeof init === 'function') {
+                    init();
                 }
 
             } else {
-                if (loginContainer) loginContainer.style.display = "flex"; // Use flex to center login
-                if (mainContent) mainContent.style.display = "none";
-                if (navBar) navBar.style.display = "none"; // Hide navbar
-                if (wrapper) wrapper.style.display = "none"; // Hide wrapper
-                if (mobileFooterNav) mobileFooterNav.style.display = "none"; // Hide mobile footer nav
+                // Jika user tidak login, tampilkan login dan sembunyikan aplikasi
+                if (loginContainer) loginContainer.style.display = "flex";
+                if (navBar) navBar.style.display = "none";
+                if (wrapper) wrapper.style.display = "none";
+                if (mobileFooterNav) mobileFooterNav.style.display = "none";
             }
         });
-  if ('serviceWorker' in navigator) {
+
+        // Pendaftaran Service Worker (jika ada)
+        if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-
                     .then(reg => {
                         console.log('Service Worker registered! Scope:', reg.scope);
                     })
