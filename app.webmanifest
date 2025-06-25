@@ -2,7 +2,7 @@
   "name": "Kasir POS Tius System",
   "short_name": "Kasir POS",
   "description": "Aplikasi Kasir Point of Sale oleh Tius",
-  "start_url": "/Pos-Kasir/",
+  "start_url": "/Tius-Pos-Kasir-PWA/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#212529",
