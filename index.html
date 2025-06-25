@@ -8,176 +8,53 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        body {
-            display: flex;
-            min-height: 100vh;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-        #wrapper {
-            display: flex;
-            width: 100%;
-            overflow: hidden;
-        }
-        /* Sembunyikan konten utama secara default, akan ditampilkan oleh JS setelah login */
-        #main-app-container {
-            display: none;
-        }
-        .sidebar {
-            width: 250px;
-            background-color: #f8f9fa;
-            border-right: 1px solid #dee2e6;
-            padding-top: 20px;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-            flex-shrink: 0;
-            transition: margin-left 0.3s ease, transform 0.3s ease;
-        }
-        .main-content {
-            flex-grow: 1;
-            padding: 20px;
-            transition: margin-left 0.3s ease;
-        }
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 10px 15px;
-            color: #495057;
-            text-decoration: none;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .nav-link.active {
-            background-color: #0d6efd;
-            color: white;
-            border-radius: 5px;
-        }
-        .nav-link:hover:not(.active) {
-            background-color: #e2e6ea;
-        }
-        .nav-link i {
-            margin-right: 10px;
-            font-size: 1.2rem;
-        }
-        .receipt {
-            font-family: 'Courier New', monospace;
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 15px;
-            border: 1px dashed #ccc;
-            background-color: white;
-            box-sizing: border-box;
-        }
-        .receipt-header, .receipt-footer {
-            text-align: center;
-            margin: 10px 0;
-        }
-        .receipt-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 3px 0;
-        }
-        .receipt-total {
-            font-weight: bold;
-            border-top: 1px dashed #000;
-            padding-top: 5px;
-            margin-top: 5px;
-        }
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-            body { background: none; margin: 0; padding: 0; }
-            .container { width: auto; max-width: none; padding: 0; }
-            .sidebar, .navbar, .modal-footer, .mobile-footer-nav { display: none !important; }
-            .main-content { padding: 0; margin-left: 0 !important; }
-            #wrapper { display: block; }
-        }
-        .product-img {
-            width: 60px; height: 60px; object-fit: cover; border-radius: 5px;
-        }
-        .section {
-            margin-bottom: 30px; border: 1px solid #ddd; border-radius: 5px; padding: 15px; background: white;
-        }
-        .section-title {
-            border-bottom: 2px solid #0d6efd; padding-bottom: 10px; margin-bottom: 15px; color: #0d6efd;
-        }
-        .product-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;
-        }
-        .product-card {
-            border: 1px solid #ddd; border-radius: 8px; overflow: hidden; text-align: center; background-color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s;
-        }
+        body { display: flex; min-height: 100vh; flex-direction: column; overflow-x: hidden; }
+        #wrapper { display: flex; width: 100%; overflow: hidden; }
+        #main-app-container { display: none; }
+        .sidebar { width: 250px; background-color: #f8f9fa; border-right: 1px solid #dee2e6; padding-top: 20px; position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0; }
+        .main-content { flex-grow: 1; padding: 20px; }
+        .nav-link { display: flex; align-items: center; padding: 10px 15px; color: #495057; text-decoration: none; transition: background-color 0.2s, color 0.2s; }
+        .nav-link.active { background-color: #0d6efd; color: white; border-radius: 5px; }
+        .nav-link:hover:not(.active) { background-color: #e2e6ea; }
+        .nav-link i { margin-right: 10px; font-size: 1.2rem; }
+        .product-img { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; }
+        .section { margin-bottom: 30px; border: 1px solid #ddd; border-radius: 5px; padding: 15px; background: white; }
+        .section-title { border-bottom: 2px solid #0d6efd; padding-bottom: 10px; margin-bottom: 15px; color: #0d6efd; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .product-card { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; text-align: center; background-color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s; }
         .product-card:hover { transform: translateY(-3px); }
-        .product-card-img-container {
-            width: 100%; height: 120px; overflow: hidden; background-color: #f0f0f0; display: flex;
-            align-items: center; justify-content: center;
-        }
+        .product-card-img-container { width: 100%; height: 120px; overflow: hidden; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; }
         .product-card-img { width: 100%; height: 100%; object-fit: cover; }
         .product-card-body { padding: 10px; }
-        .product-card-body h6 {
-            margin-bottom: 5px; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .product-card-body p { font-size: 0.85rem; color: #666; margin-bottom: 5px; }
-        .product-card-body .btn { font-size: 0.85rem; padding: 5px 10px; }
+        .quick-menu button { padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; font-size: 1rem; }
+        .quick-menu button i { margin-bottom: 5px; font-size: 1.5rem; }
 
         @media (max-width: 768px) {
             .sidebar { display: none !important; }
             .main-content { width: 100%; margin-left: 0; padding-bottom: 70px; }
             .navbar { display: flex !important; width: 100%; }
-            #wrapper.toggled::after { display: none; }
-            .mobile-footer-nav {
-                display: flex; position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background-color: #fff;
-                border-top: 1px solid #dee2e6; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); z-index: 1030;
-                justify-content: space-around; padding: 5px 0;
-            }
-            .mobile-footer-nav .nav-link {
-                flex-direction: column; text-align: center; font-size: 0.75rem; padding: 5px 8px;
-                color: #6c757d; transition: color 0.2s, background-color 0.2s; border-radius: 5px;
-            }
+            .mobile-footer-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background-color: #fff; border-top: 1px solid #dee2e6; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); z-index: 1030; justify-content: space-around; padding: 5px 0; }
+            .mobile-footer-nav .nav-link { flex-direction: column; text-align: center; font-size: 0.75rem; padding: 5px 8px; color: #6c757d; border-radius: 5px; }
             .mobile-footer-nav .nav-link i { margin-right: 0; margin-bottom: 3px; font-size: 1.2rem; }
             .mobile-footer-nav .nav-link.active { background-color: #e9ecef; color: #0d6efd; }
         }
 
         @media (min-width: 769px) {
-            .sidebar { position: sticky; transform: translateX(0%); display: flex !important; }
-            .main-content { margin-left: 0; padding-bottom: 20px; }
+            .sidebar { display: flex !important; }
             .navbar { display: none !important; }
             .mobile-footer-nav { display: none; }
         }
-        .sync-status {
-            position: fixed; bottom: 10px; right: 10px; padding: 5px 10px; border-radius: 20px;
-            font-size: 12px; z-index: 1000;
-        }
-        .sync-status.online { background-color: #28a745; color: white; }
-        .sync-status.offline { background-color: #dc3545; color: white; }
-        .sync-status.syncing { background-color: #ffc107; color: black; }
-        .quick-menu {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px;
-        }
-        .quick-menu button {
-            padding: 15px; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; border-radius: 8px; font-size: 1rem;
-        }
-        .quick-menu button i { margin-bottom: 5px; font-size: 1.5rem; }
     </style>
 </head>
 <body class="bg-light">
-    <!-- Kontainer Login, ditampilkan secara default -->
+    <!-- Kontainer Login -->
     <div id="login-container" style="height:100vh; background: linear-gradient(to right, #6a11cb, #2575fc); display: flex; justify-content: center; align-items: center;">
         <div class="card shadow" style="width: 100%; max-width: 400px;">
-            <div class="card-body">
+            <div class="card-body p-4">
                 <h4 class="card-title text-center mb-4">Login ke Sistem Kasir</h4>
                 <form id="login-form">
-                    <div class="mb-3">
-                        <input class="form-control" id="email" placeholder="Email" required type="email"/>
-                    </div>
-                    <div class="mb-3">
-                        <input class="form-control" id="password" placeholder="Password" required type="password"/>
-                    </div>
+                    <div class="mb-3"><input class="form-control" id="email" placeholder="Email" required type="email"/></div>
+                    <div class="mb-3"><input class="form-control" id="password" placeholder="Password" required type="password"/></div>
                     <button class="btn btn-primary w-100" type="submit">Login</button>
                     <div id="login-error" class="text-danger mt-2 text-center" style="display: none;"></div>
                 </form>
@@ -185,7 +62,7 @@
         </div>
     </div>
 
-    <!-- Kontainer Aplikasi Utama, disembunyikan secara default -->
+    <!-- Kontainer Aplikasi Utama -->
     <div id="main-app-container">
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom no-print">
             <div class="container-fluid">
@@ -200,17 +77,13 @@
             <div class="sidebar d-flex flex-column p-3 no-print">
                 <h3 class="text-primary mb-4 text-center"><i class="bi bi-cash-stack"></i> POS System</h3>
                 <nav class="nav flex-column" id="sidebar-nav">
-                    <a class="nav-link active" id="nav-dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                    <a class="nav-link" id="nav-sales-tab" data-bs-toggle="tab" href="#sales" role="tab"><i class="bi bi-cart"></i> Penjualan</a>
-                    <a class="nav-link" id="nav-stock-tab" data-bs-toggle="tab" href="#stock-management" role="tab"><i class="bi bi-box-seam"></i> Manajemen Stok</a>
-                    <a class="nav-link" id="nav-report-tab" data-bs-toggle="tab" href="#profit-loss-report" role="tab"><i class="bi bi-graph-up"></i> Laporan Rugi Laba</a>
-                    <a class="nav-link" id="nav-history-tab" data-bs-toggle="tab" href="#transaction-history" role="tab"><i class="bi bi-clock-history"></i> Riwayat Transaksi</a>
-                    <a class="nav-link" id="nav-backup-tab" data-bs-toggle="tab" href="#backup-restore" role="tab"><i class="bi bi-database"></i> Backup & Restore</a>
-                    <a class="nav-link" id="nav-settings-tab" data-bs-toggle="tab" href="#settings" role="tab"><i class="bi bi-gear"></i> Pengaturan</a>
+                    <a class="nav-link active" data-bs-toggle="tab" href="#dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                    <a class="nav-link" data-bs-toggle="tab" href="#sales"><i class="bi bi-cart"></i> Penjualan</a>
+                    <a class="nav-link" data-bs-toggle="tab" href="#stock-management"><i class="bi bi-box-seam"></i> Manajemen Stok</a>
+                    <a class="nav-link" data-bs-toggle="tab" href="#transaction-history"><i class="bi bi-clock-history"></i> Riwayat Transaksi</a>
+                    <a class="nav-link" data-bs-toggle="tab" href="#settings"><i class="bi bi-gear"></i> Pengaturan</a>
                 </nav>
-                <div class="mt-auto">
-                    <button id="logout-btn-sidebar" class="btn btn-danger w-100"><i class="bi bi-box-arrow-right"></i> Logout</button>
-                </div>
+                <div class="mt-auto"><button id="logout-btn-sidebar" class="btn btn-danger w-100"><i class="bi bi-box-arrow-right"></i> Logout</button></div>
             </div>
             <div class="main-content tab-content" id="nav-tabContent">
                 <!-- Dashboard Pane -->
@@ -222,26 +95,10 @@
                             <button class="btn btn-info" id="quick-add-product"><i class="bi bi-plus-square"></i> Tambah Produk</button>
                         </div>
                         <div class="row">
-                            <div class="col-md-3">
-                                <div class="card text-white bg-primary mb-3">
-                                    <div class="card-body"><h5 class="card-title">Penjualan Hari Ini</h5><h2 class="mb-0" id="today-sales">0</h2></div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card text-white bg-success mb-3">
-                                    <div class="card-body"><h5 class="card-title">Laba Hari Ini</h5><h2 class="mb-0" id="today-profit">0</h2></div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card text-white bg-warning mb-3">
-                                    <div class="card-body"><h5 class="card-title">Total Produk</h5><h2 class="mb-0" id="total-products">0</h2></div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card text-white bg-info mb-3">
-                                    <div class="card-body"><h5 class="card-title">Transaksi Pending</h5><h2 class="mb-0" id="pending-transactions">0</h2></div>
-                                </div>
-                            </div>
+                            <div class="col-md-3"><div class="card text-white bg-primary mb-3"><div class="card-body"><h5 class="card-title">Penjualan Hari Ini</h5><h2 class="mb-0" id="today-sales">0</h2></div></div></div>
+                            <div class="col-md-3"><div class="card text-white bg-success mb-3"><div class="card-body"><h5 class="card-title">Laba Hari Ini</h5><h2 class="mb-0" id="today-profit">0</h2></div></div></div>
+                            <div class="col-md-3"><div class="card text-white bg-warning mb-3"><div class="card-body"><h5 class="card-title">Total Produk</h5><h2 class="mb-0" id="total-products">0</h2></div></div></div>
+                            <div class="col-md-3"><div class="card text-white bg-info mb-3"><div class="card-body"><h5 class="card-title">Transaksi Pending</h5><h2 class="mb-0" id="pending-transactions-count">0</h2></div></div></div>
                         </div>
                     </div>
                 </div>
@@ -249,46 +106,23 @@
                 <!-- Sales Pane -->
                 <div class="tab-pane fade" id="sales" role="tabpanel">
                     <div class="section">
-                         <h2 class="section-title"><i class="bi bi-cart"></i> Penjualan</h2>
+                        <h2 class="section-title"><i class="bi bi-cart"></i> Penjualan</h2>
                         <div class="row">
-                            <div class="col-md-8">
-                                <div class="row mb-3 align-items-end">
-                                    <div class="col-md-6 mb-2 mb-md-0">
-                                        <div class="input-group"><span class="input-group-text"><i class="bi bi-search"></i></span><input type="text" class="form-control" id="product-search" placeholder="Cari produk..."></div>
-                                    </div>
-                                    <div class="col-md-3 col-6">
-                                        <div class="btn-group w-100" role="group">
-                                            <button class="btn btn-outline-primary active" id="view-list-btn" title="Tampilan Daftar"><i class="bi bi-list-ul"></i></button>
-                                            <button class="btn btn-outline-primary" id="view-grid-btn" title="Tampilan Kotak"><i class="bi bi-grid"></i></button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3 col-6">
-                                        <button class="btn btn-outline-secondary w-100" id="show-pending"><i class="bi bi-hourglass"></i> Pending (<span id="pending-count">0</span>)</button>
-                                    </div>
-                                </div>
-                                <div id="product-display-area" class="mb-3">
-                                    <div class="table-responsive" id="product-table-view">
-                                        <table class="table table-bordered table-hover">
-                                            <thead class="table-light"><tr><th>Produk</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead>
-                                            <tbody id="product-list"></tbody>
-                                        </table>
-                                    </div>
-                                    <div id="product-grid-view" class="product-grid" style="display: none;"></div>
-                                </div>
-                                <h5 class="mb-3">Items Transaksi</h5>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-hover" id="transaction-table">
-                                        <thead class="table-light"><tr><th>Produk</th><th>Harga</th><th>Qty</th><th>Total</th><th>Aksi</th></tr></thead>
+                            <div class="col-md-7">
+                                <input type="text" class="form-control mb-3" id="product-search" placeholder="Cari produk...">
+                                <div id="product-list-sales" class="product-grid" style="max-height: 60vh; overflow-y: auto;"></div>
+                            </div>
+                            <div class="col-md-5">
+                                <h5 class="mb-3">Keranjang</h5>
+                                <div class="table-responsive" style="min-height: 40vh;">
+                                    <table class="table table-sm" id="transaction-table">
+                                        <thead><tr><th>Produk</th><th>Qty</th><th>Total</th><th></th></tr></thead>
                                         <tbody id="transaction-items"></tbody>
                                     </table>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
-                                    <h4 class="mb-0">Total: <span id="transaction-total" class="text-primary">0</span></h4>
-                                    <div class="d-flex flex-wrap mt-2 mt-md-0">
-                                        <button class="btn btn-outline-danger me-2 mb-2 mb-md-0" id="save-pending"><i class="bi bi-hourglass"></i> Simpan Pending</button>
-                                        <button class="btn btn-primary" id="process-payment"><i class="bi bi-credit-card"></i> Proses Pembayaran</button>
-                                    </div>
-                                </div>
+                                <hr>
+                                <h4 class="text-end">Total: <span id="transaction-total" class="text-primary">Rp 0</span></h4>
+                                <div class="d-grid gap-2 mt-3"><button class="btn btn-primary" id="process-payment-btn"><i class="bi bi-credit-card"></i> Proses Pembayaran</button></div>
                             </div>
                         </div>
                     </div>
@@ -296,78 +130,122 @@
 
                 <!-- Stock Management Pane -->
                 <div class="tab-pane fade" id="stock-management" role="tabpanel">
-                     <div class="section">
+                    <div class="section">
                         <h2 class="section-title"><i class="bi bi-box-seam"></i> Manajemen Produk</h2>
                         <div class="row">
                             <div class="col-md-4">
-                                <div class="card mb-4">
-                                    <div class="card-header bg-primary text-white"><h3 class="mb-0"><i class="bi bi-plus-circle"></i> Tambah / Edit Produk</h3></div>
+                                <div class="card">
+                                    <div class="card-header"><h5 class="mb-0"><i class="bi bi-plus-circle"></i> Tambah / Edit Produk</h5></div>
                                     <div class="card-body">
                                         <form id="product-form">
                                             <input type="hidden" id="product-id-hidden">
-                                            <div class="mb-3"><label for="product-name" class="form-label">Nama Produk</label><input type="text" class="form-control" id="product-name" required></div>
-                                            <div class="mb-3"><label for="product-buy-price" class="form-label">Harga Beli</label><input type="number" class="form-control" id="product-buy-price" min="0" required></div>
-                                            <div class="mb-3"><label for="product-sell-price" class="form-label">Harga Jual</label><input type="text" class="form-control" id="product-sell-price" required></div>
-                                            <div class="mb-3"><label for="product-stock" class="form-label">Stok Awal</label><input type="number" class="form-control" id="product-stock" min="0" value="0" required></div>
-                                            <div class="mb-3"><label for="product-image-upload" class="form-label">Gambar Produk</label><input type="file" class="form-control" id="product-image-upload" accept="image/*"><small class="form-text text-muted">Jika tidak diisi, akan menggunakan gambar default.</small></div>
+                                            <div class="mb-2"><label class="form-label">Nama Produk</label><input type="text" class="form-control" id="product-name" required></div>
+                                            <div class="mb-2"><label class="form-label">Harga Beli</label><input type="number" class="form-control" id="product-buy-price" min="0" required></div>
+                                            <div class="mb-2"><label class="form-label">Harga Jual</label><input type="number" class="form-control" id="product-sell-price" min="0" required></div>
+                                            <div class="mb-3"><label class="form-label">Stok</label><input type="number" class="form-control" id="product-stock" min="0" required></div>
                                             <div class="d-grid gap-2">
-                                                <button type="submit" class="btn btn-primary" id="save-product-btn"><i class="bi bi-save"></i> Simpan Produk</button>
-                                                <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;"><i class="bi bi-x-circle"></i> Batal Edit</button>
+                                                <button type="submit" class="btn btn-primary" id="save-product-btn"><i class="bi bi-save"></i> Simpan</button>
+                                                <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;"><i class="bi bi-x-circle"></i> Batal</button>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-8">
-                                <div class="card">
-                                    <div class="card-header bg-success text-white">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <h3 class="mb-0"><i class="bi bi-box-seam"></i> Daftar Produk</h3>
-                                            <div class="input-group" style="width: 300px;"><span class="input-group-text"><i class="bi bi-search"></i></span><input type="text" class="form-control" id="product-list-search" placeholder="Cari produk..."></div>
-                                        </div>
-                                    </div>
-                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                                        <table class="table table-hover">
-                                            <thead><tr><th>Gambar</th><th>Nama</th><th>Harga Beli</th><th>Harga Jual</th><th>Stok</th><th>Aksi</th></tr></thead>
-                                            <tbody id="product-table-body"></tbody>
-                                        </table>
-                                    </div>
+                                <input type="text" class="form-control mb-3" id="product-list-search" placeholder="Cari dalam daftar produk...">
+                                <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+                                    <table class="table table-hover">
+                                        <thead><tr><th>Nama</th><th>Harga Beli</th><th>Harga Jual</th><th>Stok</th><th>Aksi</th></tr></thead>
+                                        <tbody id="product-table-body"></tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Other Panes (Report, History, Backup, Settings) would go here... -->
-                <!-- The structure is the same, so they are omitted for brevity but should be kept from your original file -->
+                <!-- Transaction History Pane -->
+                <div class="tab-pane fade" id="transaction-history" role="tabpanel">
+                    <div class="section">
+                        <h2 class="section-title"><i class="bi bi-clock-history"></i> Riwayat Transaksi</h2>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>ID Transaksi</th><th>Tanggal</th><th>Item</th><th>Total</th><th>Aksi</th></tr></thead>
+                                <tbody id="history-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Pane -->
+                <div class="tab-pane fade" id="settings" role="tabpanel">
+                    <div class="section">
+                        <h2 class="section-title"><i class="bi bi-gear"></i> Pengaturan</h2>
+                        <div class="row">
+                             <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header"><h5 class="mb-0">Pengaturan Toko (Struk)</h5></div>
+                                    <div class="card-body">
+                                        <form id="store-settings-form">
+                                            <div class="mb-3"><label class="form-label">Nama Toko</label><input type="text" id="store-name" class="form-control" value="Toko Maju Jaya"></div>
+                                            <div class="mb-3"><label class="form-label">Alamat</label><input type="text" id="store-address" class="form-control" value="Jl. Raya No. 123"></div>
+                                            <div class="mb-3"><label class="form-label">Telepon</label><input type="text" id="store-phone" class="form-control" value="081234567890"></div>
+                                            <div class="mb-3"><label class="form-label">Pesan Footer</label><input type="text" id="receipt-footer" class="form-control" value="Terima kasih!"></div>
+                                            <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     
-    <!-- Modals (Pending, Payment, Receipt) would go here... -->
-    <!-- They are omitted for brevity but should be kept from your original file -->
-
-    <div class="sync-status offline" id="syncStatus"><i class="bi bi-wifi-off"></i> Offline Mode</div>
-
-    <nav class="mobile-footer-nav no-print nav justify-content-around">
-        <a class="nav-link active" id="footer-dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
-        <a class="nav-link" id="footer-sales-tab" data-bs-toggle="tab" href="#sales" role="tab"><i class="bi bi-cart"></i> <span>Penjualan</span></a>
-        <a class="nav-link" id="footer-stock-tab" data-bs-toggle="tab" href="#stock-management" role="tab"><i class="bi bi-box-seam"></i> <span>Stok</span></a>
-        <a class="nav-link" id="footer-history-tab" data-bs-toggle="tab" href="#transaction-history" role="tab"><i class="bi bi-clock-history"></i> <span>Riwayat</span></a>
-        <a class="nav-link" id="footer-settings-tab" data-bs-toggle="tab" href="#settings" role="tab"><i class="bi bi-gear"></i> <span>Pengaturan</span></a>
-    </nav>
+    <!-- Modal Pembayaran -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Pembayaran</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <h4 class="mb-3">Total Belanja: <span id="payment-modal-total"></span></h4>
+                    <div class="mb-3"><label class="form-label">Jumlah Dibayar</label><input type="number" class="form-control" id="amount-paid"></div>
+                    <h5>Kembalian: <span id="change-amount"></span></h5>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="complete-payment-btn">Selesaikan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Struk -->
+    <div class="modal fade" id="receiptModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Struk</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body" id="receipt-content" style="font-family: 'Courier New', monospace;"></div>
+                <div class="modal-footer">
+                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" onclick="window.print();">Cetak</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Gunakan Firebase SDK v9+ (Modular) secara eksklusif -->
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, enableIndexedDbPersistence, onSnapshot } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore.js";
 
         // --- Konfigurasi ---
         const firebaseConfig = {
-            apiKey: "AIzaSyBVCynAyWLPqwhkEx4dR0k5J_OsL-0Q_rY", // GANTI DENGAN API KEY ANDA
+            apiKey: "AIzaSyBVCynAyWLPqwhkEx4dR0k5J_OsL-0Q_rY",
             authDomain: "kasir-toko-70d61.firebaseapp.com",
             projectId: "kasir-toko-70d61",
             storageBucket: "kasir-toko-70d61.appspot.com",
@@ -375,239 +253,347 @@
             appId: "1:1057810583954:web:788e1058ad4a07eb84f14b"
         };
 
-        // --- Inisialisasi Firebase (Modular) ---
+        // --- Inisialisasi Firebase ---
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Aktifkan persistensi offline
-        enableIndexedDbPersistence(db)
-            .catch((err) => {
-                if (err.code == 'failed-precondition') {
-                    console.warn("Multiple tabs open, persistence can only be enabled in one tab at a time.");
-                } else if (err.code == 'unimplemented') {
-                    console.warn("The current browser does not support all of the features required to enable persistence.");
-                }
-            });
-
-        // --- Variabel & State Global ---
+        // --- Variabel Global & State ---
         let products = [];
         let transactions = [];
-        let pendingTransactions = [];
+        let currentTransaction = { items: [], total: 0 };
         let editingProductId = null;
-        let unsubscribeProducts; // Untuk listener produk
-        let unsubscribeTransactions; // Untuk listener transaksi
+        let unsubscribeProducts, unsubscribeTransactions;
+        let paymentModalInstance, receiptModalInstance;
 
         // --- Referensi Elemen DOM ---
         const loginContainer = document.getElementById('login-container');
         const mainAppContainer = document.getElementById('main-app-container');
-        const loginForm = document.getElementById('login-form');
-        const loginError = document.getElementById('login-error');
-        const productForm = document.getElementById('product-form');
-        const productNameInput = document.getElementById('product-name');
-        const productBuyPriceInput = document.getElementById('product-buy-price');
-        const productSellPriceInput = document.getElementById('product-sell-price');
-        const productStockInput = document.getElementById('product-stock');
-        const productIdHidden = document.getElementById('product-id-hidden');
-        const saveProductBtn = document.getElementById('save-product-btn');
-        const cancelEditBtn = document.getElementById('cancel-edit-btn');
-        const productTableBody = document.getElementById('product-table-body');
         const userGreeting = document.getElementById('user-greeting');
+        const productTableBody = document.getElementById('product-table-body');
+        const productForm = document.getElementById('product-form');
+        const historyList = document.getElementById('history-list');
 
         // --- Logika Otentikasi ---
         onAuthStateChanged(auth, user => {
             if (user) {
-                // Pengguna sudah login
                 loginContainer.style.display = 'none';
                 mainAppContainer.style.display = 'block';
                 userGreeting.textContent = `Halo, ${user.email}`;
-                initApplication(); // Inisialisasi aplikasi setelah login berhasil
+                initApplication();
             } else {
-                // Pengguna belum login atau sudah logout
                 loginContainer.style.display = 'flex';
                 mainAppContainer.style.display = 'none';
-                if (unsubscribeProducts) unsubscribeProducts(); // Hentikan listener jika ada
+                if (unsubscribeProducts) unsubscribeProducts();
                 if (unsubscribeTransactions) unsubscribeTransactions();
             }
         });
 
-        loginForm.addEventListener('submit', (e) => {
+        document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, email, password)
-                .catch(err => {
-                    loginError.textContent = "Login Gagal: " + err.message;
-                    loginError.style.display = 'block';
-                });
+            signInWithEmailAndPassword(auth, email, password).catch(err => {
+                document.getElementById('login-error').textContent = "Login Gagal: " + err.message;
+                document.getElementById('login-error').style.display = 'block';
+            });
         });
-
+        
         document.getElementById('logout-btn-nav').addEventListener('click', () => signOut(auth));
         document.getElementById('logout-btn-sidebar').addEventListener('click', () => signOut(auth));
 
-
         // --- Fungsi Utama Aplikasi ---
         function initApplication() {
-            // Setup listeners untuk data real-time dari Firestore
             listenForProducts();
             listenForTransactions();
-            // Muat fungsi lain yang diperlukan
-            loadDashboard();
+            setupEventListeners();
+            paymentModalInstance = new bootstrap.Modal(document.getElementById('paymentModal'));
+            receiptModalInstance = new bootstrap.Modal(document.getElementById('receiptModal'));
         }
+
+        function setupEventListeners() {
+            // Manajemen Produk
+            productForm.addEventListener('submit', handleProductFormSubmit);
+            document.getElementById('cancel-edit-btn').addEventListener('click', resetProductForm);
+            document.getElementById('product-list-search').addEventListener('input', (e) => renderProductTable(e.target.value));
+
+            // Penjualan
+            document.getElementById('product-search').addEventListener('input', (e) => renderSalesProductList(e.target.value));
+            document.getElementById('process-payment-btn').addEventListener('click', processPayment);
+            document.getElementById('complete-payment-btn').addEventListener('click', completePayment);
+            document.getElementById('amount-paid').addEventListener('input', calculateChange);
+
+            // Navigasi Cepat Dashboard
+            document.getElementById('quick-sales').addEventListener('click', () => new bootstrap.Tab(document.querySelector('a[href="#sales"]')).show());
+            document.getElementById('quick-add-product').addEventListener('click', () => new bootstrap.Tab(document.querySelector('a[href="#stock-management"]')).show());
         
-        // Listener untuk produk secara real-time
+            // Pengaturan
+            document.getElementById('store-settings-form').addEventListener('submit', saveSettings);
+            loadSettings();
+        }
+
+        // --- Listener Firestore ---
         function listenForProducts() {
-            if (unsubscribeProducts) unsubscribeProducts(); // Hentikan listener lama
+            if (unsubscribeProducts) unsubscribeProducts();
             const productsCol = collection(db, "products");
             unsubscribeProducts = onSnapshot(productsCol, (snapshot) => {
                 products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log("Produk berhasil dimuat:", products.length);
-                renderProducts(); // Render ulang produk setiap ada perubahan
-                loadDashboard();
-            }, (error) => {
-                console.error("Gagal memuat produk: ", error);
-                alert("Gagal memuat data produk dari server.");
-            });
+                renderProductTable();
+                renderSalesProductList();
+                updateDashboard();
+            }, console.error);
         }
-        
-        // Listener untuk transaksi secara real-time
+
         function listenForTransactions() {
-            // Fungsi ini bisa ditambahkan jika ingin data transaksi juga real-time
-            console.log("Setup listener transaksi jika diperlukan");
+            if (unsubscribeTransactions) unsubscribeTransactions();
+            const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
+            unsubscribeTransactions = onSnapshot(q, (snapshot) => {
+                transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderHistory();
+                updateDashboard();
+            }, console.error);
+        }
+
+        // --- Render UI ---
+        function renderProductTable(searchTerm = '') {
+            productTableBody.innerHTML = '';
+            const filtered = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            filtered.forEach(p => {
+                const row = productTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${p.name}</td>
+                    <td>${formatCurrency(p.buyPrice)}</td>
+                    <td>${formatCurrency(p.sellPrice)}</td>
+                    <td>${p.stock}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning edit-product" data-id="${p.id}"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-danger delete-product" data-id="${p.id}"><i class="bi bi-trash"></i></button>
+                    </td>`;
+            });
+            productTableBody.querySelectorAll('.edit-product').forEach(b => b.addEventListener('click', (e) => editProduct(e.currentTarget.dataset.id)));
+            productTableBody.querySelectorAll('.delete-product').forEach(b => b.addEventListener('click', (e) => deleteProduct(e.currentTarget.dataset.id)));
+        }
+
+        function renderSalesProductList(searchTerm = '') {
+            const container = document.getElementById('product-list-sales');
+            container.innerHTML = '';
+            const filtered = products.filter(p => p.stock > 0 && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            filtered.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card p-2';
+                card.innerHTML = `<h6>${p.name}</h6><p>${formatCurrency(p.sellPrice)}</p>`;
+                card.onclick = () => addToCart(p.id);
+                container.appendChild(card);
+            });
         }
         
-        function renderProducts(searchTerm = '') {
-            productTableBody.innerHTML = '';
-            const filteredProducts = products.filter(p =>
-                p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-            if (filteredProducts.length === 0) {
-                productTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada produk</td></tr>';
-                return;
-            }
-
-            filteredProducts.forEach(product => {
-                const row = document.createElement('tr');
+        function renderTransactionItems() {
+            const tbody = document.getElementById('transaction-items');
+            tbody.innerHTML = '';
+            currentTransaction.items.forEach((item, index) => {
+                const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${product.image ? `<img src="${product.image}" class="product-img" alt="${product.name}">` : '<i class="bi bi-image text-muted"></i>'}</td>
-                    <td>${product.name}</td>
-                    <td>Rp ${product.buyPrice.toLocaleString('id-ID')}</td>
-                    <td>Rp ${product.sellPrice.toLocaleString('id-ID')}</td>
-                    <td>${product.stock}</td>
+                    <td>${item.name}</td>
                     <td>
-                        <button class="btn btn-sm btn-warning me-1 edit-product" data-id="${product.id}"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-sm btn-danger delete-product" data-id="${product.id}"><i class="bi bi-trash"></i></button>
+                        <i class="bi bi-dash-circle-fill text-danger me-2" onclick="updateCartItem(${index}, -1)"></i>
+                        ${item.quantity}
+                        <i class="bi bi-plus-circle-fill text-success ms-2" onclick="updateCartItem(${index}, 1)"></i>
                     </td>
-                `;
-                productTableBody.appendChild(row);
+                    <td>${formatCurrency(item.quantity * item.price)}</td>
+                    <td><i class="bi bi-x-circle text-danger" onclick="removeCartItem(${index})"></i></td>`;
             });
-            
-             // Re-attach event listeners after rendering
-            document.querySelectorAll('.edit-product').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    editProduct(this.getAttribute('data-id'));
-                });
-            });
-            document.querySelectorAll('.delete-product').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    deleteProduct(this.getAttribute('data-id'));
-                });
-            });
+            currentTransaction.total = currentTransaction.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+            document.getElementById('transaction-total').textContent = formatCurrency(currentTransaction.total);
         }
 
+        function renderHistory() {
+            historyList.innerHTML = '';
+            transactions.forEach(t => {
+                const date = t.timestamp ? t.timestamp.toDate().toLocaleString('id-ID') : 'N/A';
+                const row = historyList.insertRow();
+                row.innerHTML = `
+                    <td>${t.id.substring(0, 8)}</td>
+                    <td>${date}</td>
+                    <td>${t.items.length}</td>
+                    <td>${formatCurrency(t.total)}</td>
+                    <td><button class="btn btn-sm btn-info view-receipt" data-id="${t.id}"><i class="bi bi-eye"></i></button></td>`;
+            });
+            historyList.querySelectorAll('.view-receipt').forEach(b => b.addEventListener('click', (e) => viewReceipt(e.currentTarget.dataset.id)));
+        }
 
-        productForm.addEventListener('submit', async (e) => {
+        function updateDashboard() {
+            document.getElementById('total-products').textContent = products.length;
+            const today = new Date().toISOString().split('T')[0];
+            const todaySales = transactions
+                .filter(t => t.timestamp && t.timestamp.toDate().toISOString().split('T')[0] === today)
+                .reduce((sum, t) => sum + t.total, 0);
+            document.getElementById('today-sales').textContent = formatCurrency(todaySales);
+        }
+
+        // --- Manajemen Produk ---
+        async function handleProductFormSubmit(e) {
             e.preventDefault();
-            
-            // PENTING: Periksa apakah pengguna sudah login
-            if (!auth.currentUser) {
-                alert("Anda harus login untuk menyimpan produk!");
-                return;
-            }
-
-            saveProductBtn.disabled = true;
-            saveProductBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...';
-
+            if (!auth.currentUser) return alert("Harus login!");
             const productData = {
-                name: productNameInput.value.trim(),
-                buyPrice: parseFloat(productBuyPriceInput.value) || 0,
-                sellPrice: parseFloat(productSellPriceInput.value) || 0,
-                stock: parseInt(productStockInput.value) || 0,
-                image: null // Logika upload gambar bisa ditambahkan di sini
+                name: document.getElementById('product-name').value,
+                buyPrice: parseFloat(document.getElementById('product-buy-price').value),
+                sellPrice: parseFloat(document.getElementById('product-sell-price').value),
+                stock: parseInt(document.getElementById('product-stock').value)
             };
-
             try {
                 if (editingProductId) {
-                    // Update produk yang ada
-                    const productRef = doc(db, "products", editingProductId);
-                    await setDoc(productRef, productData, { merge: true });
-                    alert("Produk berhasil diperbarui!");
+                    await setDoc(doc(db, "products", editingProductId), productData, { merge: true });
                 } else {
-                    // Tambah produk baru
-                    const productsCol = collection(db, "products");
-                    await addDoc(productsCol, productData);
-                    alert("Produk berhasil ditambahkan!");
+                    await addDoc(collection(db, "products"), productData);
                 }
                 resetProductForm();
-            } catch (error) {
-                console.error("Error saving product: ", error);
-                alert("Gagal menyimpan produk ke database. Error: " + error.message);
-            } finally {
-                saveProductBtn.disabled = false;
-                saveProductBtn.innerHTML = '<i class="bi bi-save"></i> Simpan Produk';
-            }
-        });
-        
-        function editProduct(productId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) return;
-
-            editingProductId = productId;
-
-            productIdHidden.value = product.id;
-            productNameInput.value = product.name;
-            productBuyPriceInput.value = product.buyPrice;
-            productSellPriceInput.value = product.sellPrice;
-            productStockInput.value = product.stock;
-
-            saveProductBtn.textContent = 'Update Produk';
-            saveProductBtn.classList.add('btn-warning');
-            cancelEditBtn.style.display = 'block';
-            productNameInput.focus();
-        }
-        
-        async function deleteProduct(productId) {
-            if (!auth.currentUser) {
-                alert("Anda harus login untuk menghapus produk!");
-                return;
-            }
-            if (confirm('Yakin ingin menghapus produk ini?')) {
-                try {
-                    await deleteDoc(doc(db, "products", productId));
-                    alert("Produk berhasil dihapus.");
-                } catch(error) {
-                     console.error("Error deleting product: ", error);
-                     alert("Gagal menghapus produk. Error: " + error.message);
-                }
-            }
+            } catch (error) { console.error("Error saving product: ", error); }
         }
 
+        function editProduct(id) {
+            const p = products.find(prod => prod.id === id);
+            if (!p) return;
+            editingProductId = id;
+            document.getElementById('product-id-hidden').value = p.id;
+            document.getElementById('product-name').value = p.name;
+            document.getElementById('product-buy-price').value = p.buyPrice;
+            document.getElementById('product-sell-price').value = p.sellPrice;
+            document.getElementById('product-stock').value = p.stock;
+            document.getElementById('save-product-btn').textContent = 'Update';
+            document.getElementById('cancel-edit-btn').style.display = 'inline-block';
+        }
+
+        async function deleteProduct(id) {
+            if (confirm('Yakin hapus produk ini?')) {
+                try { await deleteDoc(doc(db, "products", id)); }
+                catch (error) { console.error("Error deleting product: ", error); }
+            }
+        }
+        
         function resetProductForm() {
             productForm.reset();
             editingProductId = null;
-            productIdHidden.value = '';
-            saveProductBtn.textContent = 'Simpan Produk';
-            saveProductBtn.classList.remove('btn-warning');
-            cancelEditBtn.style.display = 'none';
+            document.getElementById('save-product-btn').textContent = 'Simpan';
+            document.getElementById('cancel-edit-btn').style.display = 'none';
         }
         
-        cancelEditBtn.addEventListener('click', resetProductForm);
-
-        function loadDashboard() {
-            document.getElementById('total-products').textContent = products.length;
-            // Logika lain untuk dashboard bisa ditambahkan di sini
+        // --- Logika Penjualan ---
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product || product.stock < 1) return;
+            const existingItem = currentTransaction.items.find(item => item.id === productId);
+            if (existingItem) {
+                if(existingItem.quantity < product.stock) existingItem.quantity++;
+            } else {
+                currentTransaction.items.push({ id: product.id, name: product.name, price: product.sellPrice, quantity: 1 });
+            }
+            renderTransactionItems();
+        }
+        
+        window.updateCartItem = function(index, change) {
+            const item = currentTransaction.items[index];
+            const product = products.find(p => p.id === item.id);
+            if(item.quantity + change > 0 && item.quantity + change <= product.stock) {
+                item.quantity += change;
+            }
+            renderTransactionItems();
         }
 
+        window.removeCartItem = function(index) {
+            currentTransaction.items.splice(index, 1);
+            renderTransactionItems();
+        }
+        
+        function processPayment() {
+            if (currentTransaction.items.length === 0) return alert("Keranjang kosong!");
+            document.getElementById('payment-modal-total').textContent = formatCurrency(currentTransaction.total);
+            document.getElementById('amount-paid').value = currentTransaction.total;
+            calculateChange();
+            paymentModalInstance.show();
+        }
+        
+        async function completePayment() {
+            const transactionToSave = { ...currentTransaction, timestamp: serverTimestamp() };
+            try {
+                // Kurangi stok
+                for (const item of transactionToSave.items) {
+                    const productRef = doc(db, "products", item.id);
+                    const product = products.find(p => p.id === item.id);
+                    await setDoc(productRef, { stock: product.stock - item.quantity }, { merge: true });
+                }
+                // Simpan transaksi
+                await addDoc(collection(db, "transactions"), transactionToSave);
+                paymentModalInstance.hide();
+                viewReceipt(null, transactionToSave); // Tampilkan struk dari data sementara
+                currentTransaction = { items: [], total: 0 }; // Reset keranjang
+                renderTransactionItems();
+            } catch (error) { console.error("Error completing payment: ", error); }
+        }
+        
+        function calculateChange() {
+            const total = currentTransaction.total;
+            const paid = parseFloat(document.getElementById('amount-paid').value) || 0;
+            const change = paid - total;
+            document.getElementById('change-amount').textContent = formatCurrency(Math.max(0, change));
+        }
+
+        function viewReceipt(transactionId, transactionData = null) {
+            const transaction = transactionData || transactions.find(t => t.id === transactionId);
+            if (!transaction) return;
+            
+            const settings = getSettings();
+            let itemsHtml = '';
+            transaction.items.forEach(item => {
+                itemsHtml += `<div>${item.name}</div><div style="text-align: right;">${item.quantity} x ${formatCurrency(item.price)} = ${formatCurrency(item.quantity * item.price)}</div>`;
+            });
+
+            document.getElementById('receipt-content').innerHTML = `
+                <div class="text-center">
+                    <h5>${settings.storeName}</h5>
+                    <p>${settings.storeAddress}<br>${settings.storePhone}</p>
+                </div>
+                <hr>
+                ${itemsHtml}
+                <hr>
+                <div style="text-align: right; font-weight: bold;">TOTAL: ${formatCurrency(transaction.total)}</div>
+                <hr>
+                <p class="text-center">${settings.receiptFooter}</p>
+            `;
+            receiptModalInstance.show();
+        }
+
+        // --- Pengaturan ---
+        function saveSettings(e) {
+            e.preventDefault();
+            const settings = {
+                storeName: document.getElementById('store-name').value,
+                storeAddress: document.getElementById('store-address').value,
+                storePhone: document.getElementById('store-phone').value,
+                receiptFooter: document.getElementById('receipt-footer').value
+            };
+            localStorage.setItem('posSettings', JSON.stringify(settings));
+            alert("Pengaturan disimpan!");
+        }
+
+        function loadSettings() {
+            const settings = getSettings();
+            document.getElementById('store-name').value = settings.storeName;
+            document.getElementById('store-address').value = settings.storeAddress;
+            document.getElementById('store-phone').value = settings.storePhone;
+            document.getElementById('receipt-footer').value = settings.receiptFooter;
+        }
+        
+        function getSettings() {
+            return JSON.parse(localStorage.getItem('posSettings')) || {
+                storeName: 'Toko Anda', storeAddress: 'Alamat Anda', storePhone: 'Telepon Anda', receiptFooter: 'Terima Kasih'
+            };
+        }
+
+        // --- Helper ---
+        function formatCurrency(amount) {
+            return `Rp ${Number(amount).toLocaleString('id-ID')}`;
+        }
     </script>
 </body>
 </html>
+
