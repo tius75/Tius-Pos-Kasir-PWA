@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kasir POS Tius System</title>
- <link rel="icon" href="favicon-32x32.png" type="image/png">  
+    <link rel="icon" href="favicon-32x32.png" type="image/png">  
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
@@ -19,7 +19,10 @@
             width: 100%;
             overflow: hidden;
         }
-        /* Sidebar tetap ada untuk desktop */
+        /* Sembunyikan konten utama secara default, akan ditampilkan oleh JS setelah login */
+        #main-app-container {
+            display: none;
+        }
         .sidebar {
             width: 250px;
             background-color: #f8f9fa;
@@ -86,2320 +89,475 @@
             .no-print {
                 display: none !important;
             }
-            body {
-                background: none;
-                margin: 0;
-                padding: 0;
-            }
-            .container {
-                width: auto;
-                max-width: none;
-                padding: 0;
-            }
-            .sidebar, .navbar, .modal-footer, .mobile-footer-nav { /* Sembunyikan footer nav saat print */
-                display: none !important;
-            }
-            .main-content {
-                padding: 0;
-                margin-left: 0 !important;
-            }
-            #wrapper {
-                display: block;
-            }
+            body { background: none; margin: 0; padding: 0; }
+            .container { width: auto; max-width: none; padding: 0; }
+            .sidebar, .navbar, .modal-footer, .mobile-footer-nav { display: none !important; }
+            .main-content { padding: 0; margin-left: 0 !important; }
+            #wrapper { display: block; }
         }
         .product-img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 5px;
+            width: 60px; height: 60px; object-fit: cover; border-radius: 5px;
         }
         .section {
-            margin-bottom: 30px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            background: white;
+            margin-bottom: 30px; border: 1px solid #ddd; border-radius: 5px; padding: 15px; background: white;
         }
         .section-title {
-            border-bottom: 2px solid #0d6efd;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            color: #0d6efd;
+            border-bottom: 2px solid #0d6efd; padding-bottom: 10px; margin-bottom: 15px; color: #0d6efd;
         }
         .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;
         }
         .product-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            text-align: center;
-            background-color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
+            border: 1px solid #ddd; border-radius: 8px; overflow: hidden; text-align: center; background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s;
         }
-        .product-card:hover {
-            transform: translateY(-3px);
-        }
+        .product-card:hover { transform: translateY(-3px); }
         .product-card-img-container {
-            width: 100%;
-            height: 120px;
-            overflow: hidden;
-            background-color: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%; height: 120px; overflow: hidden; background-color: #f0f0f0; display: flex;
+            align-items: center; justify-content: center;
         }
-        .product-card-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .product-card-body {
-            padding: 10px;
-        }
+        .product-card-img { width: 100%; height: 100%; object-fit: cover; }
+        .product-card-body { padding: 10px; }
         .product-card-body h6 {
-            margin-bottom: 5px;
-            font-size: 0.95rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            margin-bottom: 5px; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .product-card-body p {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        .product-card-body .btn {
-            font-size: 0.85rem;
-            padding: 5px 10px;
-        }
+        .product-card-body p { font-size: 0.85rem; color: #666; margin-bottom: 5px; }
+        .product-card-body .btn { font-size: 0.85rem; padding: 5px 10px; }
 
-        /* Responsive Styles */
         @media (max-width: 768px) {
-            /* Sembunyikan sidebar sepenuhnya di mobile */
-            .sidebar {
-                display: none !important;
-            }
-            .main-content {
-                width: 100%;
-                margin-left: 0;
-                padding-bottom: 70px; /* Tambahkan padding untuk footer menu */
-            }
-            .navbar {
-                display: flex !important; /* Pastikan navbar atas tetap terlihat di mobile */
-                width: 100%;
-            }
-            /* Hapus efek overlay sidebar jika sebelumnya ada */
-            #wrapper.toggled::after {
-                display: none;
-            }
-            #pendingModal .modal-dialog {
-                margin: 0;
-                width: 100%;
-                height: 100%;
-                max-width: none;
-            }
-            #pendingModal .modal-content {
-                height: 100%;
-                border-radius: 0;
-            }
-            #pendingModal .modal-body {
-                overflow-y: auto;
-            }
-
-            /* --- Gaya untuk Menu Footer Mobile --- */
+            .sidebar { display: none !important; }
+            .main-content { width: 100%; margin-left: 0; padding-bottom: 70px; }
+            .navbar { display: flex !important; width: 100%; }
+            #wrapper.toggled::after { display: none; }
             .mobile-footer-nav {
-                display: flex; /* Tampilkan di mobile */
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-                background-color: #fff;
-                border-top: 1px solid #dee2e6;
-                box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-                z-index: 1030;
-                justify-content: space-around; /* Distribusi item secara merata */
-                padding: 5px 0;
+                display: flex; position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background-color: #fff;
+                border-top: 1px solid #dee2e6; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); z-index: 1030;
+                justify-content: space-around; padding: 5px 0;
             }
             .mobile-footer-nav .nav-link {
-                flex-direction: column; /* Icon di atas teks */
-                text-align: center;
-                font-size: 0.75rem; /* Ukuran font lebih kecil */
-                padding: 5px 8px;
-                color: #6c757d;
-                transition: color 0.2s, background-color 0.2s;
-                border-radius: 5px;
+                flex-direction: column; text-align: center; font-size: 0.75rem; padding: 5px 8px;
+                color: #6c757d; transition: color 0.2s, background-color 0.2s; border-radius: 5px;
             }
-            .mobile-footer-nav .nav-link i {
-                margin-right: 0; /* Hapus margin kanan icon */
-                margin-bottom: 3px; /* Jarak antara icon dan teks */
-                font-size: 1.2rem; /* Ukuran icon */
-            }
-            .mobile-footer-nav .nav-link.active {
-                background-color: #e9ecef; /* Warna latar belakang untuk item aktif */
-                color: #0d6efd; /* Warna teks biru untuk item aktif */
-            }
+            .mobile-footer-nav .nav-link i { margin-right: 0; margin-bottom: 3px; font-size: 1.2rem; }
+            .mobile-footer-nav .nav-link.active { background-color: #e9ecef; color: #0d6efd; }
         }
 
         @media (min-width: 769px) {
-            .sidebar {
-                position: sticky;
-                transform: translateX(0%);
-                display: flex !important; /* Pastikan sidebar tetap terlihat di desktop */
-            }
-            .main-content {
-                margin-left: 0;
-                padding-bottom: 20px; /* Padding normal untuk desktop */
-            }
-            .navbar {
-                display: none !important; /* Sembunyikan navbar atas di desktop */
-            }
-            .mobile-footer-nav {
-                display: none; /* Sembunyikan di desktop */
-            }
+            .sidebar { position: sticky; transform: translateX(0%); display: flex !important; }
+            .main-content { margin-left: 0; padding-bottom: 20px; }
+            .navbar { display: none !important; }
+            .mobile-footer-nav { display: none; }
         }
         .sync-status {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 1000;
+            position: fixed; bottom: 10px; right: 10px; padding: 5px 10px; border-radius: 20px;
+            font-size: 12px; z-index: 1000;
         }
-        .sync-status.online {
-            background-color: #28a745;
-            color: white;
-        }
-        .sync-status.offline {
-            background-color: #dc3545;
-            color: white;
-        }
-        .sync-status.syncing {
-            background-color: #ffc107;
-            color: black;
-        }
-        /* Style for quick menu buttons */
+        .sync-status.online { background-color: #28a745; color: white; }
+        .sync-status.offline { background-color: #dc3545; color: white; }
+        .sync-status.syncing { background-color: #ffc107; color: black; }
         .quick-menu {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px;
         }
         .quick-menu button {
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            font-size: 1rem;
+            padding: 15px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; border-radius: 8px; font-size: 1rem;
         }
-        .quick-menu button i {
-            margin-bottom: 5px;
-            font-size: 1.5rem;
-        }
-        .edit-row {
-            background-color: #f0f8ff; /* Light blue background for editing row */
-        }
-        .edit-row input[type="number"], .edit-row input[type="text"] {
-            width: 80px; /* Adjust width as needed */
-        }
+        .quick-menu button i { margin-bottom: 5px; font-size: 1.5rem; }
     </style>
 </head>
 <body class="bg-light">
-  <div id="login-container" style="display:none; height:100vh; background: linear-gradient(to right, #6a11cb, #2575fc); display: flex; justify-content: center; align-items: center;">
-  <div class="card shadow" style="width: 100%; max-width: 400px;">
-    <div class="card-body">
-      <h4 class="card-title text-center mb-4">Login ke Sistem Kasir</h4>
-      <form id="login-form">
-        <div class="mb-3">
-          <input class="form-control" id="email" placeholder="Email" required="" type="email"/>
-        </div>
-        <div class="mb-3">
-          <input class="form-control" id="password" placeholder="Password" required="" type="password"/>
-        </div>
-        <button class="btn btn-primary w-100" type="submit">Login</button>
-      </form>
-    </div>
-  </div>
-</div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom no-print">
-        <div class="container-fluid">
-            <a class="navbar-brand text-primary ms-3" href="#">POS System</a>
-            <div class="d-flex align-items-center">
-                <span class="text-muted small">Halo, User!</span>
+    <!-- Kontainer Login, ditampilkan secara default -->
+    <div id="login-container" style="height:100vh; background: linear-gradient(to right, #6a11cb, #2575fc); display: flex; justify-content: center; align-items: center;">
+        <div class="card shadow" style="width: 100%; max-width: 400px;">
+            <div class="card-body">
+                <h4 class="card-title text-center mb-4">Login ke Sistem Kasir</h4>
+                <form id="login-form">
+                    <div class="mb-3">
+                        <input class="form-control" id="email" placeholder="Email" required type="email"/>
+                    </div>
+                    <div class="mb-3">
+                        <input class="form-control" id="password" placeholder="Password" required type="password"/>
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Login</button>
+                    <div id="login-error" class="text-danger mt-2 text-center" style="display: none;"></div>
+                </form>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="d-flex" id="wrapper">
-        <div class="sidebar d-flex flex-column p-3 no-print">
-            <h3 class="text-primary mb-4 text-center"><i class="bi bi-cash-stack"></i> POS System</h3>
-            <nav class="nav flex-column" id="sidebar-nav">
-                <a class="nav-link active" id="nav-dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab" aria-controls="dashboard" aria-selected="true">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a class="nav-link" id="nav-sales-tab" data-bs-toggle="tab" href="#sales" role="tab" aria-controls="sales" aria-selected="false">
-                    <i class="bi bi-cart"></i> Penjualan
-                </a>
-                <a class="nav-link" id="nav-stock-tab" data-bs-toggle="tab" href="#stock-management" role="tab" aria-controls="stock-management" aria-selected="false">
-                    <i class="bi bi-box-seam"></i> Manajemen Stok
-                </a>
-                <a class="nav-link" id="nav-report-tab" data-bs-toggle="tab" href="#profit-loss-report" role="tab" aria-controls="profit-loss-report" aria-selected="false">
-                    <i class="bi bi-graph-up"></i> Laporan Rugi Laba
-                </a>
-                <a class="nav-link" id="nav-history-tab" data-bs-toggle="tab" href="#transaction-history" role="tab" aria-controls="transaction-history" aria-selected="false">
-                    <i class="bi bi-clock-history"></i> Riwayat Transaksi
-                </a>
-                <a class="nav-link" id="nav-backup-tab" data-bs-toggle="tab" href="#backup-restore" role="tab" aria-controls="backup-restore" aria-selected="false">
-                    <i class="bi bi-database"></i> Backup & Restore
-                </a>
-                <a class="nav-link" id="nav-settings-tab" data-bs-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="false">
-                    <i class="bi bi-gear"></i> Pengaturan
-                </a>
-            </nav>
-        </div>
-
-        <div class="main-content tab-content" id="nav-tabContent">
-            <div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="nav-dashboard-tab">
-                <div class="section">
-                    <h2 class="section-title"><i class="bi bi-speedometer2"></i> Dashboard</h2>
-                    <div class="quick-menu">
-                        <button class="btn btn-success" id="quick-sales">
-                            <i class="bi bi-cart-fill"></i> Transaksi Penjualan
-                        </button>
-                        <button class="btn btn-info" id="quick-add-product">
-                            <i class="bi bi-plus-square"></i> Tambah Produk
-                        </button>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="card text-white bg-primary mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title">Penjualan Hari Ini</h5>
-                                            <h2 class="mb-0" id="today-sales">0</h2>
-                                        </div>
-                                        <i class="bi bi-cart fs-1"></i>
-                                    </div>
+    <!-- Kontainer Aplikasi Utama, disembunyikan secara default -->
+    <div id="main-app-container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom no-print">
+            <div class="container-fluid">
+                <a class="navbar-brand text-primary ms-3" href="#">POS System</a>
+                <div class="d-flex align-items-center">
+                    <span id="user-greeting" class="text-muted small me-3"></span>
+                    <button id="logout-btn-nav" class="btn btn-sm btn-outline-danger">Logout</button>
+                </div>
+            </div>
+        </nav>
+        <div class="d-flex" id="wrapper">
+            <div class="sidebar d-flex flex-column p-3 no-print">
+                <h3 class="text-primary mb-4 text-center"><i class="bi bi-cash-stack"></i> POS System</h3>
+                <nav class="nav flex-column" id="sidebar-nav">
+                    <a class="nav-link active" id="nav-dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                    <a class="nav-link" id="nav-sales-tab" data-bs-toggle="tab" href="#sales" role="tab"><i class="bi bi-cart"></i> Penjualan</a>
+                    <a class="nav-link" id="nav-stock-tab" data-bs-toggle="tab" href="#stock-management" role="tab"><i class="bi bi-box-seam"></i> Manajemen Stok</a>
+                    <a class="nav-link" id="nav-report-tab" data-bs-toggle="tab" href="#profit-loss-report" role="tab"><i class="bi bi-graph-up"></i> Laporan Rugi Laba</a>
+                    <a class="nav-link" id="nav-history-tab" data-bs-toggle="tab" href="#transaction-history" role="tab"><i class="bi bi-clock-history"></i> Riwayat Transaksi</a>
+                    <a class="nav-link" id="nav-backup-tab" data-bs-toggle="tab" href="#backup-restore" role="tab"><i class="bi bi-database"></i> Backup & Restore</a>
+                    <a class="nav-link" id="nav-settings-tab" data-bs-toggle="tab" href="#settings" role="tab"><i class="bi bi-gear"></i> Pengaturan</a>
+                </nav>
+                <div class="mt-auto">
+                    <button id="logout-btn-sidebar" class="btn btn-danger w-100"><i class="bi bi-box-arrow-right"></i> Logout</button>
+                </div>
+            </div>
+            <div class="main-content tab-content" id="nav-tabContent">
+                <!-- Dashboard Pane -->
+                <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
+                    <div class="section">
+                        <h2 class="section-title"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+                        <div class="quick-menu">
+                            <button class="btn btn-success" id="quick-sales"><i class="bi bi-cart-fill"></i> Transaksi Penjualan</button>
+                            <button class="btn btn-info" id="quick-add-product"><i class="bi bi-plus-square"></i> Tambah Produk</button>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card text-white bg-primary mb-3">
+                                    <div class="card-body"><h5 class="card-title">Penjualan Hari Ini</h5><h2 class="mb-0" id="today-sales">0</h2></div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-success mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title">Laba Hari Ini</h5>
-                                            <h2 class="mb-0" id="today-profit">0</h2>
-                                        </div>
-                                        <i class="bi bi-currency-dollar fs-1"></i>
-                                    </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-success mb-3">
+                                    <div class="card-body"><h5 class="card-title">Laba Hari Ini</h5><h2 class="mb-0" id="today-profit">0</h2></div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-warning mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title">Total Produk</h5>
-                                            <h2 class="mb-0" id="total-products">0</h2>
-                                        </div>
-                                        <i class="bi bi-box fs-1"></i>
-                                    </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-warning mb-3">
+                                    <div class="card-body"><h5 class="card-title">Total Produk</h5><h2 class="mb-0" id="total-products">0</h2></div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-info mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title">Transaksi Pending</h5>
-                                            <h2 class="mb-0" id="pending-transactions">0</h2>
-                                        </div>
-                                        <i class="bi bi-hourglass-split fs-1"></i>
-                                    </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-info mb-3">
+                                    <div class="card-body"><h5 class="card-title">Transaksi Pending</h5><h2 class="mb-0" id="pending-transactions">0</h2></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="tab-pane fade" id="sales" role="tabpanel" aria-labelledby="nav-sales-tab">
-                <div class="section">
-                    <h2 class="section-title"><i class="bi bi-cart"></i> Penjualan</h2>
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="row mb-3 align-items-end">
-                                <div class="col-md-6 mb-2 mb-md-0">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                        <input type="text" class="form-control" id="product-search" placeholder="Cari produk...">
+                <!-- Sales Pane -->
+                <div class="tab-pane fade" id="sales" role="tabpanel">
+                    <div class="section">
+                         <h2 class="section-title"><i class="bi bi-cart"></i> Penjualan</h2>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="row mb-3 align-items-end">
+                                    <div class="col-md-6 mb-2 mb-md-0">
+                                        <div class="input-group"><span class="input-group-text"><i class="bi bi-search"></i></span><input type="text" class="form-control" id="product-search" placeholder="Cari produk..."></div>
+                                    </div>
+                                    <div class="col-md-3 col-6">
+                                        <div class="btn-group w-100" role="group">
+                                            <button class="btn btn-outline-primary active" id="view-list-btn" title="Tampilan Daftar"><i class="bi bi-list-ul"></i></button>
+                                            <button class="btn btn-outline-primary" id="view-grid-btn" title="Tampilan Kotak"><i class="bi bi-grid"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6">
+                                        <button class="btn btn-outline-secondary w-100" id="show-pending"><i class="bi bi-hourglass"></i> Pending (<span id="pending-count">0</span>)</button>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-6">
-                                    <div class="btn-group w-100" role="group">
-                                        <button class="btn btn-outline-primary active" id="view-list-btn" title="Tampilan Daftar"><i class="bi bi-list-ul"></i></button>
-                                        <button class="btn btn-outline-primary" id="view-grid-btn" title="Tampilan Kotak"><i class="bi bi-grid"></i></button>
+                                <div id="product-display-area" class="mb-3">
+                                    <div class="table-responsive" id="product-table-view">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="table-light"><tr><th>Produk</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead>
+                                            <tbody id="product-list"></tbody>
+                                        </table>
                                     </div>
+                                    <div id="product-grid-view" class="product-grid" style="display: none;"></div>
                                 </div>
-                                <div class="col-md-3 col-6">
-                                    <button class="btn btn-outline-secondary w-100" id="show-pending">
-                                        <i class="bi bi-hourglass"></i> Pending (<span id="pending-count">0</span>)
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div id="product-display-area" class="mb-3">
-                                <div class="table-responsive" id="product-table-view">
-                                    <table class="table table-bordered table-hover">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Produk</th>
-                                                <th>Harga</th>
-                                                <th>Stok</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="product-list">
-                                            </tbody>
+                                <h5 class="mb-3">Items Transaksi</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover" id="transaction-table">
+                                        <thead class="table-light"><tr><th>Produk</th><th>Harga</th><th>Qty</th><th>Total</th><th>Aksi</th></tr></thead>
+                                        <tbody id="transaction-items"></tbody>
                                     </table>
                                 </div>
-                                <div id="product-grid-view" class="product-grid" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
+                                    <h4 class="mb-0">Total: <span id="transaction-total" class="text-primary">0</span></h4>
+                                    <div class="d-flex flex-wrap mt-2 mt-md-0">
+                                        <button class="btn btn-outline-danger me-2 mb-2 mb-md-0" id="save-pending"><i class="bi bi-hourglass"></i> Simpan Pending</button>
+                                        <button class="btn btn-primary" id="process-payment"><i class="bi bi-credit-card"></i> Proses Pembayaran</button>
                                     </div>
-                            </div>
-
-                            <h5 class="mb-3">Items Transaksi</h5>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover" id="transaction-table">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Produk</th>
-                                            <th>Harga</th>
-                                            <th>Qty</th>
-                                            <th>Total</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="transaction-items">
-                                        </tbody>
-                                </table>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
-                                <h4 class="mb-0">Total: <span id="transaction-total" class="text-primary">0</span></h4>
-                                <div class="d-flex flex-wrap mt-2 mt-md-0">
-                                    <button class="btn btn-outline-danger me-2 mb-2 mb-md-0" id="save-pending">
-                                        <i class="bi bi-hourglass"></i> Simpan Pending
-                                    </button>
-                                    <button class="btn btn-primary" id="process-payment">
-                                        <i class="bi bi-credit-card"></i> Proses Pembayaran
-                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4 d-none"></div>
                     </div>
                 </div>
-            </div>
 
-            <div class="tab-pane fade" id="stock-management" role="tabpanel" aria-labelledby="nav-stock-tab">
-                <div class="section">
-                    <h2 class="section-title"><i class="bi bi-box-seam"></i> Manajemen Produk</h2>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card mb-4">
-                                <div class="card-header bg-primary text-white">
-                                    <h3 class="mb-0"><i class="bi bi-plus-circle"></i> Tambah / Edit Produk</h3>
-                                </div>
-                                <div class="card-body">
-                                    <form id="product-form">
-                                        <input type="hidden" id="product-id-hidden">
-                                        <div class="mb-3">
-                                            <label for="product-name" class="form-label">Nama Produk</label>
-                                            <input type="text" class="form-control" id="product-name" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="product-buy-price" class="form-label">Harga Beli</label>
-                                            <input type="number" class="form-control" id="product-buy-price" min="0" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="product-sell-price" class="form-label">Harga Jual</label>
-                                            <input type="text" class="form-control" id="product-sell-price" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="product-stock" class="form-label">Stok Awal</label>
-                                            <input type="number" class="form-control" id="product-stock" min="0" value="0" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="product-image-upload" class="form-label">Gambar Produk</label>
-                                            <input type="file" class="form-control" id="product-image-upload" accept="image/*">
-                                            <small class="form-text text-muted">Akan diunggah ke Cloudinary. Jika tidak diisi, akan menggunakan gambar default.</small>
-                                            <div id="product-image-preview" class="mt-2 text-center" style="display: none;">
-                                                <img src="" alt="Preview" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; border-radius: 5px;">
-                                                <p class="small text-muted mb-0">Preview</p>
+                <!-- Stock Management Pane -->
+                <div class="tab-pane fade" id="stock-management" role="tabpanel">
+                     <div class="section">
+                        <h2 class="section-title"><i class="bi bi-box-seam"></i> Manajemen Produk</h2>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-primary text-white"><h3 class="mb-0"><i class="bi bi-plus-circle"></i> Tambah / Edit Produk</h3></div>
+                                    <div class="card-body">
+                                        <form id="product-form">
+                                            <input type="hidden" id="product-id-hidden">
+                                            <div class="mb-3"><label for="product-name" class="form-label">Nama Produk</label><input type="text" class="form-control" id="product-name" required></div>
+                                            <div class="mb-3"><label for="product-buy-price" class="form-label">Harga Beli</label><input type="number" class="form-control" id="product-buy-price" min="0" required></div>
+                                            <div class="mb-3"><label for="product-sell-price" class="form-label">Harga Jual</label><input type="text" class="form-control" id="product-sell-price" required></div>
+                                            <div class="mb-3"><label for="product-stock" class="form-label">Stok Awal</label><input type="number" class="form-control" id="product-stock" min="0" value="0" required></div>
+                                            <div class="mb-3"><label for="product-image-upload" class="form-label">Gambar Produk</label><input type="file" class="form-control" id="product-image-upload" accept="image/*"><small class="form-text text-muted">Jika tidak diisi, akan menggunakan gambar default.</small></div>
+                                            <div class="d-grid gap-2">
+                                                <button type="submit" class="btn btn-primary" id="save-product-btn"><i class="bi bi-save"></i> Simpan Produk</button>
+                                                <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;"><i class="bi bi-x-circle"></i> Batal Edit</button>
                                             </div>
-                                        </div>
-                                        <div class="d-grid gap-2">
-                                            <button type="submit" class="btn btn-primary" id="save-product-btn">
-                                                <i class="bi bi-save"></i> Simpan Produk
-                                            </button>
-                                            <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display: none;">
-                                                <i class="bi bi-x-circle"></i> Batal Edit
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header bg-success text-white">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h3 class="mb-0"><i class="bi bi-box-seam"></i> Daftar Produk</h3>
-                                        <div class="input-group" style="width: 300px;">
-                                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                            <input type="text" class="form-control" id="product-list-search" placeholder="Cari produk...">
-                                        </div>
+                                        </form>
                                     </div>
                                 </div>
-                                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Gambar</th>
-                                                <th>Nama</th>
-                                                <th>Harga Beli</th>
-                                                <th>Harga Jual</th>
-                                                <th>Stok</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="product-table-body">
-                                            </tbody>
-                                    </table>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h3 class="mb-0"><i class="bi bi-box-seam"></i> Daftar Produk</h3>
+                                            <div class="input-group" style="width: 300px;"><span class="input-group-text"><i class="bi bi-search"></i></span><input type="text" class="form-control" id="product-list-search" placeholder="Cari produk..."></div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                        <table class="table table-hover">
+                                            <thead><tr><th>Gambar</th><th>Nama</th><th>Harga Beli</th><th>Harga Jual</th><th>Stok</th><th>Aksi</th></tr></thead>
+                                            <tbody id="product-table-body"></tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="tab-pane fade" id="profit-loss-report" role="tabpanel" aria-labelledby="nav-report-tab">
-                <div class="section">
-                    <h2 class="section-title"><i class="bi bi-graph-up"></i> Laporan Rugi Laba</h2>
-                    <div class="row mb-4 g-3">
-                        <div class="col-md-3 col-6">
-                            <label for="report-start-date" class="form-label">Tanggal Mulai</label>
-                            <input type="date" class="form-control" id="report-start-date">
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <label for="report-end-date" class="form-label">Tanggal Akhir</label>
-                            <input type="date" class="form-control" id="report-end-date">
-                        </div>
-                        <div class="col-md-3 col-12">
-                            <label for="report-product-filter" class="form-label">Filter Produk</label>
-                            <select class="form-select" id="report-product-filter">
-                                <option value="all">Semua Produk</option>
-                                </select>
-                        </div>
-                        <div class="col-md-3 col-12 d-flex align-items-end gap-2">
-                            <button class="btn btn-primary flex-grow-1" id="generate-report">
-                                <i class="bi bi-arrow-repeat"></i> Generate
-                            </button>
-                            <button class="btn btn-info flex-grow-1" id="download-report-pdf">
-                                <i class="bi bi-file-earmark-pdf"></i> PDF
-                            </button>
-                        </div>
-                    </div>
-
-                    <ul class="nav nav-tabs mb-3" id="reportTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#report-summary-content" type="button" role="tab" aria-controls="report-summary-content" aria-selected="true">Ringkasan</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="item-profit-tab" data-bs-toggle="tab" data-bs-target="#report-item-profit-content" type="button" role="tab" aria-controls="report-item-profit-content" aria-selected="false">Rugi Laba per Item</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="stock-report-tab" data-bs-toggle="tab" data-bs-target="#report-stock-content" type="button" role="tab" aria-controls="report-stock-content" aria-selected="false">Stok per Item</button>
-                        </li>
-                    </ul>
-
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="report-summary-content" role="tabpanel" aria-labelledby="summary-tab">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="card mb-4">
-                                        <div class="card-header bg-success text-white">
-                                            <h4 class="mb-0">Ringkasan Laporan</h4>
-                                        </div>
-                                        <div class="card-body">
-                                            <table class="table">
-                                                <tr>
-                                                    <th>Total Penjualan</th>
-                                                    <td id="report-total-sales">0</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Total Pembelian (HPP)</th>
-                                                    <td id="report-total-purchases">0</td>
-                                                </tr>
-                                                <tr class="table-primary">
-                                                    <th>Laba Kotor</th>
-                                                    <td id="report-gross-profit">0</td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="card">
-                                        <div class="card-header bg-info text-white">
-                                            <h4 class="mb-0">Detail Transaksi</h4>
-                                        </div>
-                                        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
-                                            <table class="table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Tanggal</th>
-                                                        <th>ID Transaksi</th>
-                                                        <th>Total</th>
-                                                        <th>Laba</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="report-transactions">
-                                                    </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="tab-pane fade" id="report-item-profit-content" role="tabpanel" aria-labelledby="item-profit-tab">
-                            <div class="card">
-                                <div class="card-header bg-primary text-white">
-                                    <h4 class="mb-0">Laporan Penjualan & Laba per Item</h4>
-                                </div>
-                                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Nama Produk</th>
-                                                <th>Terjual (Qty)</th>
-                                                <th>Total Penjualan</th>
-                                                <th>Total HPP</th>
-                                                <th>Total Laba</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="report-item-profit-table">
-                                            <tr><td colspan="5" class="text-center">Generate laporan terlebih dahulu.</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="tab-pane fade" id="report-stock-content" role="tabpanel" aria-labelledby="stock-report-tab">
-                            <div class="card">
-                                <div class="card-header bg-warning text-white">
-                                    <h4 class="mb-0">Laporan Stok Produk</h4>
-                                </div>
-                                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Nama Produk</th>
-                                                <th>Stok Tersedia</th>
-                                                <th>Harga Beli</th>
-                                                <th>Harga Jual</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="report-stock-table">
-                                            <tr><td colspan="4" class="text-center">Data stok terkini.</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="transaction-history" role="tabpanel" aria-labelledby="nav-history-tab">
-                <div class="section">
-                    <h2 class="section-title"><i class="bi bi-clock-history"></i> Riwayat Transaksi</h2>
-                    <div class="card">
-                        <div class="card-body" style="max-height: 500px; overflow-y: auto;">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID Transaksi</th>
-                                        <th>Tanggal</th>
-                                        <th>Items</th>
-                                        <th>Total</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="history-list">
-                                    </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="backup-restore" role="tabpanel" aria-labelledby="nav-backup-tab">
-                <div class="section">
-                    <h2 class="section-title"><i class="bi bi-database"></i> Backup & Restore Data</h2>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-primary text-white">
-                                    <h3 class="mb-0"><i class="bi bi-download"></i> Backup Data</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label class="form-label">Pilih Data untuk Backup</label>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="backup-products" checked>
-                                            <label class="form-check-label" for="backup-products">Data Produk</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="backup-transactions" checked>
-                                            <label class="form-check-label" for="backup-transactions">Data Transaksi</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="backup-pending" checked>
-                                            <label class="form-check-label" for="backup-pending">Transaksi Pending</label>
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-primary w-100" id="backup-data">
-                                        <i class="bi bi-download"></i> Backup Data
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-success text-white">
-                                    <h3 class="mb-0"><i class="bi bi-upload"></i> Restore Data</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label for="restore-file" class="form-label">Pilih File Backup</label>
-                                        <input type="file" class="form-control" id="restore-file" accept=".json">
-                                    </div>
-                                    <div class="alert alert-warning">
-                                        <i class="bi bi-exclamation-triangle"></i> Restore akan mengganti data yang ada. Pastikan Anda sudah membackup data terbaru.
-                                    </div>
-                                    <button class="btn btn-success w-100" id="restore-data">
-                                        <i class="bi bi-upload"></i> Restore Data
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="nav-settings-tab">
-                <div class="section">
-                    <h2 class="section-title"><i class="bi bi-gear"></i> Pengaturan Aplikasi</h2>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-info text-white">
-                                    <h3 class="mb-0"><i class="bi bi-shop"></i> Pengaturan Toko (Struk)</h3>
-                                </div>
-                                <div class="card-body">
-                                    <form id="store-settings-form">
-                                        <div class="mb-3">
-                                            <label for="store-name" class="form-label">Nama Toko</label>
-                                            <input type="text" class="form-control" id="store-name" placeholder="Nama Toko Anda" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="store-address" class="form-label">Alamat Toko</label>
-                                            <textarea class="form-control" id="store-address" rows="3" placeholder="Alamat lengkap toko Anda" required></textarea>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="store-phone" class="form-label">Nomor Telepon</label>
-                                            <input type="tel" class="form-control" id="store-phone" placeholder="Contoh: 081234567890">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="receipt-footer" class="form-label">Pesan Footer Struk</label>
-                                            <textarea class="form-control" id="receipt-footer" rows="2" placeholder="Terima kasih atas kunjungan Anda!"></textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary w-100">
-                                            <i class="bi bi-save"></i> Simpan Pengaturan Toko
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-warning text-white">
-                                    <h3 class="mb-0"><i class="bi bi-printer"></i> Pengaturan Printer</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label for="printer-paper-size" class="form-label">Ukuran Kertas Struk</label>
-                                        <select class="form-select" id="printer-paper-size">
-                                            <option value="58mm">58mm (Kecil)</option>
-                                            <option value="80mm">80mm (Standar)</option>
-                                            <option value="custom">Ukuran Kustom (via browser)</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="print-preview" class="form-label">Pratinjau Cetak</label>
-                                        <select class="form-select" id="print-preview">
-                                            <option value="yes">Ya (Buka dialog cetak browser)</option>
-                                            <option value="no">Tidak (Cetak langsung - *Tidak direkomendasikan untuk web*)</option>
-                                        </select>
-                                        <small class="form-text text-muted">Untuk web, umumnya cetak selalu melalui dialog cetak browser.</small>
-                                    </div>
-                                    <button class="btn btn-primary w-100 mt-3" id="save-printer-settings">
-                                        <i class="bi bi-save"></i> Simpan Pengaturan Printer
-                                    </button>
-                                    <div class="alert alert-info mt-3">
-                                        <i class="bi bi-info-circle"></i> **Catatan:** Pengaturan printer di aplikasi web ini terbatas. Browser Anda akan tetap menampilkan dialog cetak standar. Pastikan printer kasir Anda sudah terhubung dan diatur sebagai printer default sistem Anda untuk hasil terbaik.
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <div class="card-header bg-secondary text-white">
-                                    <h3 class="mb-0"><i class="bi bi-wrench"></i> Pengaturan Lainnya</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label for="currency-symbol" class="form-label">Simbol Mata Uang</label>
-                                        <input type="text" class="form-control" id="currency-symbol" value="Rp" required>
-                                    </div>
-                                    <button class="btn btn-primary w-100" id="save-other-settings">
-                                        <i class="bi bi-save"></i> Simpan Pengaturan Lain
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Other Panes (Report, History, Backup, Settings) would go here... -->
+                <!-- The structure is the same, so they are omitted for brevity but should be kept from your original file -->
             </div>
         </div>
     </div>
+    
+    <!-- Modals (Pending, Payment, Receipt) would go here... -->
+    <!-- They are omitted for brevity but should be kept from your original file -->
 
-    <div class="modal fade" id="pendingModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Transaksi Pending</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="pending-customer-name" class="form-label">Nama Pelanggan (untuk transaksi pending)</label>
-                        <input type="text" class="form-control" id="pending-customer-name" placeholder="Masukkan nama pelanggan">
-                    </div>
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Tanggal</th>
-                                <th>Pelanggan</th>
-                                <th>Items</th>
-                                <th>Total</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pending-transactions-list">
-                            </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="sync-status offline" id="syncStatus"><i class="bi bi-wifi-off"></i> Offline Mode</div>
 
-    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-md">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="paymentModalLabel"><i class="bi bi-calculator"></i> Proses Pembayaran</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <h4 class="text-center mb-3">Total Belanja: <span id="payment-modal-total" class="text-primary fw-bold">Rp 0</span></h4>
-                    <div class="mb-3">
-                        <label for="payment-method" class="form-label">Metode Pembayaran</label>
-                        <select class="form-select" id="payment-method">
-                            <option value="cash">Tunai</option>
-                            <option value="debit">Kartu Debit</option>
-                            <option value="credit">Kartu Kredit</option>
-                            <option value="transfer">Transfer Bank</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="customer-name" class="form-label">Nama Pelanggan (Opsional)</label>
-                        <input type="text" class="form-control" id="customer-name" placeholder="Nama pelanggan">
-                    </div>
-                    <div class="mb-3">
-                        <label for="amount-paid" class="form-label">Jumlah Dibayar</label>
-                        <input type="text" class="form-control" id="amount-paid" value="0">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Kembalian</label>
-                        <div class="form-control bg-light" id="change-amount">0</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-success" id="complete-payment">
-                        <i class="bi bi-check-circle"></i> Selesaikan Pembayaran
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="receiptModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Struk Pembayaran</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="receipt-content"></div>
-                </div>
-                <div class="modal-footer no-print">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="button" class="btn btn-primary" id="print-receipt">
-                        <i class="bi bi-printer"></i> Cetak
-                    </button>
-                    <button type="button" class="btn btn-info" id="share-receipt-image">
-                        <i class="bi bi-share"></i> Share Image
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="sync-status offline" id="syncStatus">
-        <i class="bi bi-wifi-off"></i> Offline Mode
-    </div>
-
-   <nav class="mobile-footer-nav no-print nav justify-content-around">
-        <a class="nav-link active" id="footer-dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab" aria-controls="dashboard" aria-selected="true">
-            <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
-        </a>
-        <a class="nav-link" id="footer-sales-tab" data-bs-toggle="tab" href="#sales" role="tab" aria-controls="sales" aria-selected="false">
-            <i class="bi bi-cart"></i> <span>Penjualan</span>
-        </a>
-        <a class="nav-link" id="footer-stock-tab" data-bs-toggle="tab" href="#stock-management" role="tab" aria-controls="stock-management" aria-selected="false">
-            <i class="bi bi-box-seam"></i> <span>Stok</span>
-        </a>
-        <a class="nav-link" id="footer-history-tab" data-bs-toggle="tab" href="#transaction-history" role="tab" aria-controls="transaction-history" aria-selected="false">
-            <i class="bi bi-clock-history"></i> <span>Riwayat</span>
-        </a>
-        <a class="nav-link" id="footer-settings-tab" data-bs-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="false">
-            <i class="bi bi-gear"></i> <span>Pengaturan</span>
-        </a>
+    <nav class="mobile-footer-nav no-print nav justify-content-around">
+        <a class="nav-link active" id="footer-dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
+        <a class="nav-link" id="footer-sales-tab" data-bs-toggle="tab" href="#sales" role="tab"><i class="bi bi-cart"></i> <span>Penjualan</span></a>
+        <a class="nav-link" id="footer-stock-tab" data-bs-toggle="tab" href="#stock-management" role="tab"><i class="bi bi-box-seam"></i> <span>Stok</span></a>
+        <a class="nav-link" id="footer-history-tab" data-bs-toggle="tab" href="#transaction-history" role="tab"><i class="bi bi-clock-history"></i> <span>Riwayat</span></a>
+        <a class="nav-link" id="footer-settings-tab" data-bs-toggle="tab" href="#settings" role="tab"><i class="bi bi-gear"></i> <span>Pengaturan</span></a>
     </nav>
-
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.js"></script>
+    
+    <!-- Gunakan Firebase SDK v9+ (Modular) secara eksklusif -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, enableIndexedDbPersistence, onSnapshot } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore.js";
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
-    <script>
-        // --- Configuration ---
-        // GANTI DENGAN CLOUD NAME ANDA
-        const CLOUDINARY_CLOUD_NAME = 'ganti_dengan_cloud_name_anda';
-        const CLOUDINARY_UPLOAD_PRESET = 'ganti_dengan_upload_preset_anda';
-
+        // --- Konfigurasi ---
         const firebaseConfig = {
-            apiKey: "AIzaSyBVCynAyWLPqwhkEx4dR0k5J_OsL-0Q_rY",
+            apiKey: "AIzaSyBVCynAyWLPqwhkEx4dR0k5J_OsL-0Q_rY", // GANTI DENGAN API KEY ANDA
             authDomain: "kasir-toko-70d61.firebaseapp.com",
             projectId: "kasir-toko-70d61",
-            storageBucket: "kasir-toko-70d61.firebasestorage.app",
+            storageBucket: "kasir-toko-70d61.appspot.com",
             messagingSenderId: "1057810583954",
             appId: "1:1057810583954:web:788e1058ad4a07eb84f14b"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // --- Inisialisasi Firebase (Modular) ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // Enable offline persistence
-        db.enablePersistence()
-            .then(() => {
-                console.log("Offline persistence enabled");
-            })
+        // Aktifkan persistensi offline
+        enableIndexedDbPersistence(db)
             .catch((err) => {
-                console.error("Error enabling offline persistence:", err);
+                if (err.code == 'failed-precondition') {
+                    console.warn("Multiple tabs open, persistence can only be enabled in one tab at a time.");
+                } else if (err.code == 'unimplemented') {
+                    console.warn("The current browser does not support all of the features required to enable persistence.");
+                }
             });
 
-        // Local storage keys
-        const LOCAL_PRODUCTS_KEY = 'pos_products';
-        const LOCAL_TRANSACTIONS_KEY = 'pos_transactions';
-        const LOCAL_PENDING_KEY = 'pos_pending_transactions';
-        const LOCAL_LAST_SYNC_KEY = 'pos_last_sync';
-
-        // Initialize variables
+        // --- Variabel & State Global ---
         let products = [];
         let transactions = [];
         let pendingTransactions = [];
-        let settings = JSON.parse(localStorage.getItem('pos_settings')) || {
-            storeName: 'Toko Maju Jaya',
-            storeAddress: 'Jl. Raya No. 123, Bekasi',
-            storePhone: '021-1234567',
-            receiptFooter: 'Terima kasih atas kunjungan Anda!',
-            printerPaperSize: '80mm',
-            printPreview: 'yes',
-            currencySymbol: 'Rp ',
-            syncEnabled: true
-        };
-
-        let currentTransaction = {
-            id: null,
-            date: null,
-            items: [],
-            customerName: '',
-            paymentMethod: 'cash',
-            amountPaid: 0,
-            change: 0,
-            total: 0,
-            profit: 0
-        };
-
         let editingProductId = null;
-        let currentProductView = 'list';
-        let isOnline = navigator.onLine;
-        let syncStatusElement = document.getElementById('syncStatus');
-        let editingTransactionId = null; // To track which transaction is being edited
+        let unsubscribeProducts; // Untuk listener produk
+        let unsubscribeTransactions; // Untuk listener transaksi
 
-        // DOM elements
-        const todaySalesElement = document.getElementById('today-sales');
-        const todayProfitElement = document.getElementById('today-profit');
-        const totalProductsElement = document.getElementById('total-products');
-        const pendingTransactionsElement = document.getElementById('pending-transactions');
-        const productSearchElement = document.getElementById('product-search');
-        const productDisplayArea = document.getElementById('product-display-area');
-        const productTableView = document.getElementById('product-table-view');
-        const productGridView = document.getElementById('product-grid-view');
-        const viewListBtn = document.getElementById('view-list-btn');
-        const viewGridBtn = document.getElementById('view-grid-btn');
-        const productListElement = document.getElementById('product-list');
-        const transactionItemsElement = document.getElementById('transaction-items');
-        const transactionTotalElement = document.getElementById('transaction-total');
-        const savePendingBtn = document.getElementById('save-pending');
-        const processPaymentBtn = document.getElementById('process-payment');
-        const showPendingBtn = document.getElementById('show-pending');
-        const pendingCountElement = document.getElementById('pending-count');
+        // --- Referensi Elemen DOM ---
+        const loginContainer = document.getElementById('login-container');
+        const mainAppContainer = document.getElementById('main-app-container');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
         const productForm = document.getElementById('product-form');
-        const productIdHidden = document.getElementById('product-id-hidden');
         const productNameInput = document.getElementById('product-name');
         const productBuyPriceInput = document.getElementById('product-buy-price');
         const productSellPriceInput = document.getElementById('product-sell-price');
         const productStockInput = document.getElementById('product-stock');
-        const productImageUpload = document.getElementById('product-image-upload');
-        const productImagePreview = document.querySelector('#product-image-preview img');
-        const productImagePreviewContainer = document.getElementById('product-image-preview');
+        const productIdHidden = document.getElementById('product-id-hidden');
         const saveProductBtn = document.getElementById('save-product-btn');
         const cancelEditBtn = document.getElementById('cancel-edit-btn');
         const productTableBody = document.getElementById('product-table-body');
-        const productListSearch = document.getElementById('product-list-search');
-        const reportStartDate = document.getElementById('report-start-date');
-        const reportEndDate = document.getElementById('report-end-date');
-        const reportProductFilter = document.getElementById('report-product-filter');
-        const generateReportBtn = document.getElementById('generate-report');
-        const downloadReportPdfBtn = document.getElementById('download-report-pdf');
-        const reportTotalSales = document.getElementById('report-total-sales');
-        const reportTotalPurchases = document.getElementById('report-total-purchases');
-        const reportGrossProfit = document.getElementById('report-gross-profit');
-        const reportTransactions = document.getElementById('report-transactions');
-        const reportItemProfitTable = document.getElementById('report-item-profit-table');
-        const reportStockTable = document.getElementById('report-stock-table');
-        const backupProductsCheckbox = document.getElementById('backup-products');
-        const backupTransactionsCheckbox = document.getElementById('backup-transactions');
-        const backupPendingCheckbox = document.getElementById('backup-pending');
-        const backupBtn = document.getElementById('backup-data');
-        const restoreFile = document.getElementById('restore-file');
-        const restoreBtn = document.getElementById('restore-data');
-        const pendingModal = new bootstrap.Modal(document.getElementById('pendingModal'));
-        const pendingTransactionsList = document.getElementById('pending-transactions-list');
-        const pendingCustomerNameInput = document.getElementById('pending-customer-name');
-        const receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'));
-        const receiptContent = document.getElementById('receipt-content');
-        const printReceiptBtn = document.getElementById('print-receipt');
-        const shareReceiptImageBtn = document.getElementById('share-receipt-image');
-        const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
-        const paymentModalTotal = document.getElementById('payment-modal-total');
-        const paymentMethodElement = document.getElementById('payment-method');
-        const customerNameElement = document.getElementById('customer-name');
-        const amountPaidElement = document.getElementById('amount-paid');
-        const changeAmountElement = document.getElementById('change-amount');
-        const completePaymentBtn = document.getElementById('complete-payment');
-        const historyList = document.getElementById('history-list');
-        const storeNameInput = document.getElementById('store-name');
-        const storeAddressInput = document.getElementById('store-address');
-        const storePhoneInput = document.getElementById('store-phone');
-        const receiptFooterInput = document.getElementById('receipt-footer');
-        const storeSettingsForm = document.getElementById('store-settings-form');
-        const printerPaperSizeSelect = document.getElementById('printer-paper-size');
-        const printPreviewSelect = document.getElementById('print-preview');
-        const savePrinterSettingsBtn = document.getElementById('save-printer-settings');
-        const currencySymbolInput = document.getElementById('currency-symbol');
-        const saveOtherSettingsBtn = document.getElementById('save-other-settings');
-        const quickSalesBtn = document.getElementById('quick-sales');
-        const quickAddProductBtn = document.getElementById('quick-add-product');
+        const userGreeting = document.getElementById('user-greeting');
 
-        // New DOM element for footer menu
-        const mobileFooterNav = document.querySelector('.mobile-footer-nav');
-
-
-        // Update sync status display
-        function updateSyncStatus() {
-            if (isOnline) {
-                syncStatusElement.innerHTML = '<i class="bi bi-wifi"></i> Online Mode';
-                syncStatusElement.className = 'sync-status online';
+        // --- Logika Otentikasi ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                // Pengguna sudah login
+                loginContainer.style.display = 'none';
+                mainAppContainer.style.display = 'block';
+                userGreeting.textContent = `Halo, ${user.email}`;
+                initApplication(); // Inisialisasi aplikasi setelah login berhasil
             } else {
-                syncStatusElement.innerHTML = '<i class="bi bi-wifi-off"></i> Offline Mode';
-                syncStatusElement.className = 'sync-status offline';
-            }
-        }
-
-        // Listen for online/offline status changes
-        window.addEventListener('online', () => {
-            isOnline = true;
-            updateSyncStatus();
-            if (settings.syncEnabled) {
-                syncData();
+                // Pengguna belum login atau sudah logout
+                loginContainer.style.display = 'flex';
+                mainAppContainer.style.display = 'none';
+                if (unsubscribeProducts) unsubscribeProducts(); // Hentikan listener jika ada
+                if (unsubscribeTransactions) unsubscribeTransactions();
             }
         });
 
-        window.addEventListener('offline', () => {
-            isOnline = false;
-            updateSyncStatus();
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, email, password)
+                .catch(err => {
+                    loginError.textContent = "Login Gagal: " + err.message;
+                    loginError.style.display = 'block';
+                });
         });
 
-        // Initial sync status
-        updateSyncStatus();
+        document.getElementById('logout-btn-nav').addEventListener('click', () => signOut(auth));
+        document.getElementById('logout-btn-sidebar').addEventListener('click', () => signOut(auth));
 
-        // Helper function to generate IDs for local storage
-        function generateId() {
-            return 'local_' + Date.now().toString() + '_' + Math.floor(Math.random() * 1000);
+
+        // --- Fungsi Utama Aplikasi ---
+        function initApplication() {
+            // Setup listeners untuk data real-time dari Firestore
+            listenForProducts();
+            listenForTransactions();
+            // Muat fungsi lain yang diperlukan
+            loadDashboard();
         }
-
-        // Helper function to merge two arrays of objects by ID
-        function mergeArrays(localArray, serverArray, idKey) {
-            const merged = [];
-            const allIds = new Set([
-                ...localArray.map(item => item[idKey]),
-                ...serverArray.map(item => item[idKey])
-            ]);
-
-            allIds.forEach(id => {
-                const localItem = localArray.find(item => item[idKey] === id);
-                const serverItem = serverArray.find(item => item[idKey] === id);
-
-                // Prefer server item if both exist
-                if (serverItem) {
-                    merged.push(serverItem);
-                } else if (localItem) {
-                    merged.push(localItem);
-                }
+        
+        // Listener untuk produk secara real-time
+        function listenForProducts() {
+            if (unsubscribeProducts) unsubscribeProducts(); // Hentikan listener lama
+            const productsCol = collection(db, "products");
+            unsubscribeProducts = onSnapshot(productsCol, (snapshot) => {
+                products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log("Produk berhasil dimuat:", products.length);
+                renderProducts(); // Render ulang produk setiap ada perubahan
+                loadDashboard();
+            }, (error) => {
+                console.error("Gagal memuat produk: ", error);
+                alert("Gagal memuat data produk dari server.");
             });
-
-            return merged;
         }
-
-        // Sync data between local storage and Firebase
-        async function syncData() {
-            if (!isOnline || !settings.syncEnabled) return;
-
-            try {
-                syncStatusElement.innerHTML = '<i class="bi bi-arrow-repeat"></i> Syncing...';
-                syncStatusElement.className = 'sync-status syncing';
-
-                // Sync products
-                const localProducts = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
-                const productsCol = db.collection('products');
-
-                // Get server products
-                const serverSnapshot = await productsCol.get();
-                const serverProducts = serverSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Merge products
-                const mergedProducts = mergeArrays(localProducts, serverProducts, 'id');
-
-                // Save merged products to both local and server
-                localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(mergedProducts));
-
-                // Batch update to Firebase
-                const batch = db.batch();
-                mergedProducts.forEach(product => {
-                    const docRef = productsCol.doc(product.id);
-                    batch.set(docRef, product);
-                });
-                await batch.commit();
-
-                // Sync transactions
-                const localTransactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
-                const transactionsCol = db.collection('transactions');
-
-                // Get server transactions
-                const serverTransactionsSnapshot = await transactionsCol.orderBy('date', 'desc').get();
-                const serverTransactions = serverTransactionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Merge transactions
-                const mergedTransactions = mergeArrays(localTransactions, serverTransactions, 'id');
-                localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(mergedTransactions));
-
-                // Batch update transactions to Firebase
-                const transactionsBatch = db.batch();
-                mergedTransactions.forEach(transaction => {
-                    const docRef = transactionsCol.doc(transaction.id);
-                    transactionsBatch.set(docRef, transaction);
-                });
-                await transactionsBatch.commit();
-
-                // Sync pending transactions
-                const localPending = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
-                const pendingCol = db.collection('pendingTransactions');
-
-                // Get server pending
-                const serverPendingSnapshot = await pendingCol.get();
-                const serverPending = serverPendingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Merge pending
-                const mergedPending = mergeArrays(localPending, serverPending, 'id');
-                localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(mergedPending));
-
-                // Batch update pending to Firebase
-                const pendingBatch = db.batch();
-                mergedPending.forEach(pending => {
-                    const docRef = pendingCol.doc(pending.id);
-                    pendingBatch.set(docRef, pending);
-                });
-                await pendingBatch.commit();
-
-                // Update last sync time
-                localStorage.setItem(LOCAL_LAST_SYNC_KEY, new Date().toISOString());
-
-                // Refresh data
-                await fetchProducts();
-                await fetchTransactions();
-                await fetchPendingTransactions();
-
-                syncStatusElement.innerHTML = '<i class="bi bi-wifi"></i> Online Mode';
-                syncStatusElement.className = 'sync-status online';
-
-                console.log('Data synced successfully');
-            } catch (error) {
-                console.error('Error syncing data:', error);
-                syncStatusElement.innerHTML = '<i class="bi bi-wifi"></i> Online Mode';
-                syncStatusElement.className = 'sync-status online';
-            }
+        
+        // Listener untuk transaksi secara real-time
+        function listenForTransactions() {
+            // Fungsi ini bisa ditambahkan jika ingin data transaksi juga real-time
+            console.log("Setup listener transaksi jika diperlukan");
         }
-
-        // Fetch products from Firebase or local storage
-        async function fetchProducts() {
-            try {
-                if (isOnline && settings.syncEnabled) {
-                    const productsCol = db.collection('products');
-                    const snapshot = await productsCol.get();
-                    products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                    // Ensure prices and stock are numbers
-                    products.forEach(p => {
-                        p.buyPrice = parseFloat(p.buyPrice) || 0;
-                        p.sellPrice = parseFloat(p.sellPrice) || 0;
-                        p.stock = parseInt(p.stock) || 0;
-                    });
-
-                    // Save to local storage
-                    localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(products));
-                } else {
-                    // Fall back to local storage
-                    products = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
-                    console.log('Using local products data');
-                }
-
-                loadProducts(productSearchElement.value, currentProductView);
-                populateProductFilterDropdown();
-                loadDashboard();
-            } catch (error) {
-                console.error("Error fetching products: ", error);
-                // Fall back to local storage
-                products = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
-                loadProducts(productSearchElement.value, currentProductView);
-                populateProductFilterDropdown();
-                loadDashboard();
-                alert("Gagal memuat produk dari database. Menggunakan data lokal.");
-            }
-        }
-
-        // Fetch transactions from Firebase or local storage
-        async function fetchTransactions() {
-            try {
-                if (isOnline && settings.syncEnabled) {
-                    const transactionsCol = db.collection('transactions');
-                    const snapshot = await transactionsCol.orderBy('date', 'desc').get();
-                    transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                    // Save to local storage
-                    localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions));
-                } else {
-                    // Fall back to local storage
-                    transactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
-                    console.log('Using local transactions data');
-                }
-
-                loadHistory();
-                loadDashboard();
-            } catch (error) {
-                console.error("Error fetching transactions: ", error);
-                // Fall back to local storage
-                transactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
-                loadHistory();
-                loadDashboard();
-                alert("Gagal memuat transaksi dari database. Menggunakan data lokal.");
-            }
-        }
-
-        // Fetch pending transactions from Firebase or local storage
-        async function fetchPendingTransactions() {
-            try {
-                if (isOnline && settings.syncEnabled) {
-                    const pendingCol = db.collection('pendingTransactions');
-                    const snapshot = await pendingCol.get();
-                    pendingTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                    // Save to local storage
-                    localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(pendingTransactions));
-                } else {
-                    // Fall back to local storage
-                    pendingTransactions = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
-                    console.log('Using local pending transactions data');
-                }
-
-                updatePendingCount();
-                loadDashboard();
-            }
-            catch (error) {
-                console.error("Error fetching pending transactions: ", error);
-                // Fall back to local storage
-                pendingTransactions = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
-                updatePendingCount();
-                loadDashboard();
-                alert("Gagal memuat transaksi pending dari database. Menggunakan data lokal.");
-            }
-        }
-
-        // Save product to Firebase and local storage
-        async function saveProductToFirestore(productData, productId = null) {
-            try {
-                // Always update local storage first for immediate UI update
-                const localProducts = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
-
-                if (productId) {
-                    // Update existing product
-                    const index = localProducts.findIndex(p => p.id === productId);
-                    if (index !== -1) {
-                        localProducts[index] = { ...localProducts[index], ...productData };
-                    }
-                } else {
-                    // Add new product
-                    productId = generateId(); // Generate a local ID
-                    localProducts.push({ id: productId, ...productData });
-                }
-
-                localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(localProducts));
-
-                if (isOnline && settings.syncEnabled) {
-                    const productsCol = db.collection('products');
-                    if (productId) {
-                        await productsCol.doc(productId).set(productData, { merge: true });
-                    } else {
-                        const docRef = await productsCol.add(productData);
-                        productId = docRef.id;
-                    }
-                }
-
-                await fetchProducts(); // Refresh data
-                return true;
-            } catch (error) {
-                console.error("Error saving product: ", error);
-                alert("Gagal menyimpan produk ke database. Data disimpan secara lokal.");
-                return false;
-            }
-        }
-
-        // Delete product from Firebase and local storage
-        async function deleteProductFromFirestore(productId) {
-            try {
-                // Update local storage first
-                let localProducts = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
-                localProducts = localProducts.filter(p => p.id !== productId);
-                localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(localProducts));
-
-                if (isOnline && settings.syncEnabled) {
-                    await db.collection('products').doc(productId).delete();
-                }
-
-                await fetchProducts();
-                return true;
-            } catch (error) {
-                console.error("Error deleting product: ", error);
-                alert("Gagal menghapus produk dari database. Data dihapus secara lokal.");
-                return false;
-            }
-        }
-
-        // Save transaction to Firebase and local storage
-        async function saveTransactionToFirestore(transactionData) {
-            try {
-                // Update local storage first
-                const localTransactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
-                transactionData.id = generateId(); // Ensure ID exists
-                localTransactions.push(transactionData);
-                localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(localTransactions));
-
-                if (isOnline && settings.syncEnabled) {
-                    await db.collection('transactions').add(transactionData);
-                }
-
-                await fetchTransactions();
-                return true;
-            } catch (error) {
-                console.error("Error saving transaction: ", error);
-                alert("Gagal menyimpan transaksi ke database. Data disimpan secara lokal.");
-                return false;
-            }
-        }
-
-        // Save pending transaction to Firebase and local storage
-        async function savePendingTransactionToFirestore(transactionData, pendingId = null) {
-            try {
-                // Update local storage first
-                const localPending = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
-
-                if (pendingId) {
-                    const index = localPending.findIndex(t => t.id === pendingId);
-                    if (index !== -1) {
-                        localPending[index] = transactionData;
-                    }
-                } else {
-                    transactionData.id = generateId(); // Ensure ID exists
-                    localPending.push(transactionData);
-                }
-
-                localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(localPending));
-
-                if (isOnline && settings.syncEnabled) {
-                    const pendingCol = db.collection('pendingTransactions');
-                    if (pendingId) {
-                        await pendingCol.doc(pendingId).set(transactionData, { merge: true });
-                    } else {
-                        await pendingCol.add(transactionData);
-                    }
-                }
-
-                await fetchPendingTransactions();
-                return true;
-            } catch (error) {
-                console.error("Error saving pending transaction: ", error);
-                alert("Gagal menyimpan transaksi pending ke database. Data disimpan secara lokal.");
-                return false;
-            }
-        }
-
-        // Delete pending transaction from Firebase and local storage
-        async function deletePendingTransactionFromFirestore(pendingId) {
-            try {
-                // Update local storage first
-                let localPending = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
-                localPending = localPending.filter(t => t.id !== pendingId);
-                localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(localPending));
-
-                if (isOnline && settings.syncEnabled) {
-                    await db.collection('pendingTransactions').doc(pendingId).delete();
-                }
-
-                await fetchPendingTransactions();
-                return true;
-            } catch (error) {
-                console.error("Error deleting pending transaction: ", error);
-                alert("Gagal menghapus transaksi pending dari database. Data dihapus secara lokal.");
-                return false;
-            }
-        }
-
-       function loadDashboard() {
-            const today = new Date().toISOString().split('T')[0];
-
-            const todayTransactions = transactions.filter(t => {
-                // Menambahkan pengecekan untuk memastikan t.date ada dan valid sebelum diproses
-                if (!t || !t.date) {
-                    return false;
-                }
-                // Menggunakan try-catch untuk keamanan jika format tanggal tidak terduga
-                try {
-                    // Memeriksa apakah bagian tanggal dari t.date sama dengan tanggal hari ini
-                    return new Date(t.date).toISOString().split('T')[0] === today;
-                } catch (e) {
-                    console.error(`Format tanggal tidak valid ditemukan untuk transaksi:`, t);
-                    return false;
-                }
-            });
-
-            const todaySales = todayTransactions.reduce((sum, t) => sum + t.total, 0);
-            const todayProfit = todayTransactions.reduce((sum, t) => sum + t.profit, 0);
-
-            todaySalesElement.textContent = formatCurrency(todaySales);
-            todayProfitElement.textContent = formatCurrency(todayProfit);
-            totalProductsElement.textContent = products.length;
-            pendingTransactionsElement.textContent = pendingTransactions.length;
-        }
-
-        // Load products based on view (list or grid)
-        function loadProducts(searchTerm = '', view = 'list') {
-            currentProductView = view;
-
-            productListElement.innerHTML = '';
-            productGridView.innerHTML = '';
-
+        
+        function renderProducts(searchTerm = '') {
+            productTableBody.innerHTML = '';
             const filteredProducts = products.filter(p =>
                 p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
             if (filteredProducts.length === 0) {
-                if (view === 'list') {
-                    productTableView.style.display = 'block';
-                    productGridView.style.display = 'none';
-                    productListElement.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada produk</td></tr>';
-                } else {
-                    productTableView.style.display = 'none';
-                    productGridView.style.display = 'flex';
-                    productGridView.innerHTML = '<p class="text-center w-100">Tidak ada produk</p>';
-                }
                 productTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada produk</td></tr>';
                 return;
             }
 
-            if (view === 'list') {
-                productTableView.style.display = 'block';
-                productGridView.style.display = 'none';
-                filteredProducts.forEach(product => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${product.name}</td>
-                        <td>${formatCurrency(product.sellPrice)}</td>
-                        <td>${product.stock}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary add-to-cart" data-id="${product.id}">
-                                <i class="bi bi-cart-plus"></i> Tambah
-                            </button>
-                        </td>
-                    `;
-                    productListElement.appendChild(row);
-                });
-            } else {
-                productTableView.style.display = 'none';
-                productGridView.style.display = 'grid';
-                filteredProducts.forEach(product => {
-                    const card = document.createElement('div');
-                    card.classList.add('product-card');
-                    card.innerHTML = `
-                        <div class="product-card-img-container">
-                            ${product.image ? `<img src="${product.image}" class="product-card-img" alt="${product.name}">` : '<i class="bi bi-image-fill text-muted fs-1"></i>'}
-                        </div>
-                        <div class="product-card-body">
-                            <h6>${product.name}</h6>
-                            <p class="text-primary fw-bold mb-1">${formatCurrency(product.sellPrice)}</p>
-                            <p class="small text-muted mb-2">Stok: ${product.stock}</p>
-                            <button class="btn btn-primary add-to-cart" data-id="${product.id}">
-                                <i class="bi bi-cart-plus"></i> Tambah
-                            </button>
-                        </div>
-                    `;
-                    productGridView.appendChild(card);
-                });
-            }
-
-            productTableBody.innerHTML = '';
-            products.forEach(product => {
+            filteredProducts.forEach(product => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>
-                        ${product.image ? `<img src="${product.image}" class="product-img" alt="${product.name}">` : '<i class="bi bi-image text-muted"></i>'}
-                    </td>
+                    <td>${product.image ? `<img src="${product.image}" class="product-img" alt="${product.name}">` : '<i class="bi bi-image text-muted"></i>'}</td>
                     <td>${product.name}</td>
-                    <td>${formatCurrency(product.buyPrice)}</td>
-                    <td>${formatCurrency(product.sellPrice)}</td>
+                    <td>Rp ${product.buyPrice.toLocaleString('id-ID')}</td>
+                    <td>Rp ${product.sellPrice.toLocaleString('id-ID')}</td>
                     <td>${product.stock}</td>
                     <td>
-                        <button class="btn btn-sm btn-warning me-1 edit-product" data-id="${product.id}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-product" data-id="${product.id}">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <button class="btn btn-sm btn-warning me-1 edit-product" data-id="${product.id}"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-danger delete-product" data-id="${product.id}"><i class="bi bi-trash"></i></button>
                     </td>
                 `;
                 productTableBody.appendChild(row);
             });
-
-            document.querySelectorAll('.add-to-cart').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const productId = this.getAttribute('data-id');
-                    addToCart(productId);
-                });
-            });
-
+            
+             // Re-attach event listeners after rendering
             document.querySelectorAll('.edit-product').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const productId = this.getAttribute('data-id');
-                    editProduct(productId);
+                    editProduct(this.getAttribute('data-id'));
                 });
             });
-
             document.querySelectorAll('.delete-product').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const productId = this.getAttribute('data-id');
-                    deleteProduct(productId);
+                    deleteProduct(this.getAttribute('data-id'));
                 });
             });
         }
 
-        function enableEditTransaction(transactionId) {
-            const transaction = transactions.find(t => t.id === transactionId);
-            if (!transaction) return;
 
-            // Remove any existing edit rows
-            const existingEditRow = document.querySelector(`#history-list + tbody.edit-row`);
-            if (existingEditRow) {
-                existingEditRow.remove();
-            }
-            document.querySelectorAll('.history-row-editing').forEach(row => row.classList.remove('history-row-editing'));
-
-            const tbody = document.createElement('tbody');
-            tbody.classList.add('edit-row');
-
-            transaction.items.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="text-wrap small">${item.namaBarang}</td>
-                    <td><input type="number" class="form-control form-control-sm" value="${item.hargaBarang}" id="edit-price-${index}" /></td>
-                    <td><input type="number" class="form-control form-control-sm" value="${item.kuantitas}" id="edit-qty-${index}" /></td>
-                    <td class="small">${formatCurrency(item.total)}</td>
-                    <td>
-                        <button class="btn btn-sm btn-success mb-1 w-100" onclick="saveEditedItem('${transactionId}', ${index})">
-                            <i class="bi bi-check-circle"></i> Simpan
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            const historyRow = document.querySelector(`#history-list tr[data-id='${transactionId}']`);
-            if (historyRow) {
-                historyRow.classList.add('history-row-editing');
-                historyRow.after(tbody);
-            }
-        }
-
-        async function saveEditedItem(transactionId, itemIndex) {
-            const transaction = transactions.find(t => t.id === transactionId);
-            if (!transaction) return;
-            const item = transaction.items[itemIndex];
-            const newQty = parseInt(document.getElementById(`edit-qty-${itemIndex}`).value);
-            const newPrice = parseFloat(document.getElementById(`edit-price-${itemIndex}`).value);
-
-            if (isNaN(newQty) || newQty < 1 || isNaN(newPrice) || newPrice < 0) {
-                alert('Kuantitas atau harga tidak valid!');
-                return;
-            }
-
-            item.kuantitas = newQty;
-            item.hargaBarang = newPrice;
-            item.total = newQty * newPrice;
-
-            transaction.total = transaction.items.reduce((sum, i) => sum + i.total, 0);
-            transaction.profit = transaction.items.reduce((sum, i) => {
-                const prod = products.find(p => p.id === i.productId);
-                return sum + ((i.hargaBarang - (prod?.buyPrice || 0)) * i.kuantitas);
-            }, 0);
-
-            // Update in local storage
-            localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions));
-
-            // Update in Firebase if online
-            if (isOnline && settings.syncEnabled) {
-                try {
-                    await db.collection('transactions').doc(transaction.id).update(transaction);
-                    console.log('Transaction updated in Firestore');
-                } catch (error) {
-                    console.error('Error updating transaction in Firestore:', error);
-                    alert('Gagal memperbarui transaksi di Firebase. Data mungkin tidak sinkron.');
-                }
-            }
-            
-            // Re-load history and remove edit row
-            loadHistory();
-            const existingEditRow = document.querySelector(`#history-list + tbody.edit-row`);
-            if (existingEditRow) {
-                existingEditRow.remove();
-            }
-            document.querySelectorAll('.history-row-editing').forEach(row => row.classList.remove('history-row-editing'));
-            alert('Item transaksi berhasil diperbarui!');
-            viewReceipt(transaction.id); // Show updated receipt
-        }
-
-        async function deleteTransaction(transactionId) {
-            if (!confirm('Yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.')) return;
-            
-            // Update local storage
-            transactions = transactions.filter(t => t.id !== transactionId);
-            localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions));
-
-            // Delete from Firebase if online
-            if (isOnline && settings.syncEnabled) {
-                try {
-                    await db.collection('transactions').doc(transactionId).delete();
-                    console.log('Transaction deleted from Firestore');
-                } catch (error) {
-                    console.error('Error deleting transaction from Firestore:', error);
-                    alert('Gagal menghapus transaksi dari Firebase. Data mungkin tidak sinkron.');
-                }
-            }
-            loadHistory();
-            loadDashboard(); // Update dashboard after deletion
-            alert('Transaksi berhasil dihapus!');
-        }
-
-        // Load transaction history
-        function loadHistory() {
-            historyList.innerHTML = '';
-
-            if (transactions.length === 0) {
-                historyList.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada transaksi</td></tr>';
-                return;
-            }
-
-            transactions.forEach(transaction => {
-                const row = document.createElement('tr');
-                row.setAttribute('data-id', transaction.id);
-                row.innerHTML = `
-                    <td class="text-break small">#${transaction.id}</td>
-                    <td class="small">${new Date(transaction.date).toLocaleString()}</td>
-                    <td class="small">${transaction.items.length} items</td>
-                    <td class="fw-bold text-end">${formatCurrency(transaction.total)}</td>
-                    <td class="text-nowrap">
-                        <button class="btn btn-sm btn-info mb-1" onclick="viewReceipt('${transaction.id}')">
-                            <i class="bi bi-eye"></i> Lihat
-                        </button>
-                        <button class="btn btn-sm btn-warning mb-1" onclick="enableEditTransaction('${transaction.id}')">
-                            <i class="bi bi-pencil-square"></i> Edit
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteTransaction('${transaction.id}')">
-                            <i class="bi bi-trash"></i> Hapus
-                        </button>
-                    </td>
-                `;
-                historyList.appendChild(row);
-            });
-        }
-
-        // Add product to cart
-        function addToCart(productId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) {
-                alert('Produk tidak ditemukan!');
-                return;
-            }
-
-            const existingItem = currentTransaction.items.find(i => i.productId === productId);
-
-            if (existingItem) {
-                if (existingItem.kuantitas < product.stock) {
-                    existingItem.kuantitas++;
-                    existingItem.total = existingItem.hargaBarang * existingItem.kuantitas;
-                } else {
-                    alert('Stok tidak mencukupi!');
-                    return;
-                }
-            } else {
-                if (product.stock > 0) {
-                    currentTransaction.items.push({
-                        productId: product.id,
-                        namaBarang: product.name,
-                        hargaBarang: product.sellPrice,
-                        kuantitas: 1,
-                        total: product.sellPrice,
-                        buyPrice: product.buyPrice
-                    });
-                } else {
-                    alert('Stok habis!');
-                    return;
-                }
-            }
-            updateTransactionDisplay();
-        }
-
-        // Update transaction display
-        function updateTransactionDisplay() {
-            transactionItemsElement.innerHTML = '';
-
-            if (currentTransaction.items.length === 0) {
-                transactionItemsElement.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada item</td></tr>';
-                transactionTotalElement.textContent = formatCurrency(0);
-                return;
-            }
-
-            let total = 0;
-            let profit = 0;
-
-            currentTransaction.items.forEach((item, index) => {
-                const itemPrice = parseFloat(item.hargaBarang) || 0;
-                item.total = itemPrice * item.kuantitas;
-
-                total += item.total;
-                profit += (itemPrice - item.buyPrice) * item.kuantitas;
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.namaBarang}</td>
-                    <td>
-                        <input type="text" class="form-control form-control-sm price-input" value="${formatNumberForInput(itemPrice)}" data-index="${index}" style="width: 100px;">
-                    </td>
-                    <td>
-                        <div class="input-group input-group-sm" style="width: 120px;">
-                            <button class="btn btn-outline-secondary decrease-qty" data-index="${index}" type="button">-</button>
-                            <input type="number" class="form-control text-center qty-input" value="${item.kuantitas}" min="1" data-index="${index}">
-                            <button class="btn btn-outline-secondary increase-qty" data-index="${index}" type="button">+</button>
-                        </div>
-                    </td>
-                    <td>${formatCurrency(item.total)}</td>
-                    <td>
-                        <button class="btn btn-sm btn-danger remove-item" data-index="${index}">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                `;
-                transactionItemsElement.appendChild(row);
-            });
-
-            currentTransaction.total = total;
-            currentTransaction.profit = profit;
-            transactionTotalElement.textContent = formatCurrency(total);
-
-            document.querySelectorAll('.price-input').forEach(input => {
-                input.addEventListener('change', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    const newPrice = parseFloat(this.value.replace(/[^0-9.]/g,""));
-                    if (!isNaN(newPrice) && newPrice >= 0) {
-                        currentTransaction.items[index].hargaBarang = newPrice;
-                    } else {
-                        alert('Harga tidak valid!');
-                        this.value = formatNumberForInput(currentTransaction.items[index].hargaBarang);
-                    }
-                    updateTransactionDisplay();
-                });
-            });
-
-            document.querySelectorAll('.decrease-qty').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    updateItemQuantity(index, -1);
-                });
-            });
-
-            document.querySelectorAll('.increase-qty').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    updateItemQuantity(index, 1);
-                });
-            });
-
-            document.querySelectorAll('.qty-input').forEach(input => {
-                input.addEventListener('change', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    const newQty = parseInt(this.value);
-                    updateItemQuantity(index, 0, newQty);
-                });
-            });
-
-            document.querySelectorAll('.remove-item').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    removeItemFromCart(index);
-                });
-            });
-        }
-
-        // Update item quantity
-        function updateItemQuantity(index, change, newQty = null) {
-            const item = currentTransaction.items[index];
-            if (!item) return;
-
-            const product = products.find(p => p.id === item.productId);
-            const maxStock = product ? product.stock : Infinity;
-
-            let newQuantity = newQty !== null ? newQty : item.kuantitas + change;
-
-            if (newQuantity < 1) newQuantity = 1;
-            if (newQuantity > maxStock) {
-                alert('Stok tidak mencukupi!');
-                newQuantity = maxStock;
-            }
-
-            item.kuantitas = newQuantity;
-            item.total = item.hargaBarang * newQuantity;
-
-            updateTransactionDisplay();
-        }
-
-        // Remove item from cart
-        function removeItemFromCart(index) {
-            if (index >= 0 && index < currentTransaction.items.length) {
-                currentTransaction.items.splice(index, 1);
-                updateTransactionDisplay();
-            }
-        }
-
-        // Save transaction as pending
-        savePendingBtn.addEventListener('click', async () => {
-            if (currentTransaction.items.length === 0) {
-                alert('Tidak ada item dalam transaksi!');
-                return;
-            }
-
-            const pendingCustomerName = prompt("Masukkan nama pelanggan untuk transaksi pending (opsional):");
-            if (pendingCustomerName !== null) {
-                currentTransaction.customerName = pendingCustomerName.trim();
-            } else {
-                currentTransaction.customerName = '';
-            }
-
-            currentTransaction.date = new Date().toISOString();
-
-            const success = await savePendingTransactionToFirestore(currentTransaction);
-            if (success) {
-                resetCurrentTransaction();
-                alert('Transaksi berhasil disimpan sebagai pending!');
-            }
-        });
-
-        // Process payment
-        processPaymentBtn.addEventListener('click', () => {
-            if (currentTransaction.items.length === 0) {
-                alert('Tidak ada item dalam transaksi!');
-                return;
-            }
-
-            paymentModalTotal.textContent = formatCurrency(currentTransaction.total);
-            amountPaidElement.value = formatNumberForInput(currentTransaction.total);
-            customerNameElement.value = currentTransaction.customerName;
-
-            calculateChange();
-            paymentModal.show();
-        });
-
-        // Calculate change (for Payment Modal)
-        function calculateChange() {
-            const amountPaid = parseFloat(amountPaidElement.value.replace(/[^0-9.]/g,"")) || 0;
-            const change = amountPaid - currentTransaction.total;
-
-            currentTransaction.amountPaid = amountPaid;
-            currentTransaction.change = change > 0 ? change : 0;
-            currentTransaction.paymentMethod = paymentMethodElement.value;
-            currentTransaction.customerName = customerNameElement.value;
-
-            changeAmountElement.textContent = formatCurrency(currentTransaction.change);
-        }
-
-        // Complete payment (from Payment Modal)
-        completePaymentBtn.addEventListener('click', async () => {
-            if (currentTransaction.items.length === 0) {
-                alert('Tidak ada item dalam transaksi!');
-                return;
-            }
-
-            const amountPaid = parseFloat(amountPaidElement.value.replace(/[^0-9.]/g,"")) || 0;
-
-            if (amountPaid < currentTransaction.total) {
-                alert('Jumlah pembayaran kurang!');
-                return;
-            }
-
-            // Update stock for each product in the transaction
-            let allStockUpdatesSuccessful = true;
-            for (const item of currentTransaction.items) {
-                const product = products.find(p => p.id === item.productId);
-                if (product) {
-                    const newStock = product.stock - item.kuantitas;
-                    const success = await saveProductToFirestore({ stock: newStock }, product.id);
-                    if (!success) {
-                        allStockUpdatesSuccessful = false;
-                        break;
-                    }
-                }
-            }
-
-            if (!allStockUpdatesSuccessful) {
-                alert("Gagal memperbarui stok produk. Transaksi tidak dapat diselesaikan.");
-                return;
-            }
-
-            // Save transaction
-            currentTransaction.date = new Date().toISOString();
-            const transactionSuccess = await saveTransactionToFirestore(currentTransaction);
-            if (!transactionSuccess) {
-                alert("Gagal menyimpan transaksi.");
-                return;
-            }
-
-            // Hide payment modal
-            paymentModal.hide();
-
-            // Show receipt modal
-            receiptContent.innerHTML = generateReceipt(currentTransaction);
-            receiptModal.show();
-
-            resetCurrentTransaction();
-
-            await fetchProducts(); // Reload products for updated stock
-            await fetchTransactions(); // Reload transactions for history
-            loadDashboard(); // Refresh dashboard
-            populateProductFilterDropdown();
-        });
-
-        // Generate receipt
-        function generateReceipt(transaction) {
-            let itemsHTML = '';
-            transaction.items.forEach(item => {
-                itemsHTML += `
-                    <div class="receipt-item">
-                        <span style="width: 60%">${item.namaBarang}</span>
-                        <span style="width: 15%; text-align: right">${item.kuantitas}</span>
-                        <span style="width: 25%; text-align: right">${formatCurrency(item.hargaBarang)}</span>
-                    </div>
-                    <div class="receipt-item">
-                        <span style="width: 60%;"></span>
-                        <span style="width: 15%; text-align: right"></span>
-                        <span style="width: 25%; text-align: right">${formatCurrency(item.total)}</span>
-                    </div>
-                `;
-            });
-
-            return `
-                <div class="receipt" id="printable-receipt">
-                    <div class="receipt-header">
-                        <h5>${settings.storeName}</h5>
-                        <p>${settings.storeAddress}</p>
-                        <p>Telp: ${settings.storePhone}</p>
-                        <hr>
-                        <p>No: #${transaction.id}</p>
-                        <p>${new Date(transaction.date).toLocaleString('id-ID', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                        ${transaction.customerName ? `<p>Pelanggan: ${transaction.customerName}</p>` : ''}
-                        <p>Metode: ${getPaymentMethodName(transaction.paymentMethod)}</p>
-                        <hr>
-                        <div class="receipt-item">
-                            <span style="width: 60%; font-weight: bold;">Produk</span>
-                            <span style="width: 15%; text-align: right; font-weight: bold;">Qty</span>
-                            <span style="width: 25%; text-align: right; font-weight: bold;">Harga</span>
-                        </div>
-                        <hr>
-                    </div>
-                    ${itemsHTML}
-                    <hr>
-                    <div class="receipt-total receipt-item">
-                        <span>TOTAL</span>
-                        <span>${formatCurrency(transaction.total)}</span>
-                    </div>
-                    <div class="receipt-item">
-                        <span>DIBAYAR</span>
-                        <span>${formatCurrency(transaction.amountPaid)}</span>
-                    </div>
-                    <div class="receipt-item">
-                        <span>KEMBALI</span>
-                        <span>${formatCurrency(transaction.change)}</span>
-                    </div>
-                    <div class="receipt-footer">
-                        <hr>
-                        <p>${settings.receiptFooter}</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Get payment method name
-        function getPaymentMethodName(method) {
-            const methods = {
-                'cash': 'Tunai',
-                'debit': 'Kartu Debit',
-                'credit': 'Kartu Kredit',
-                'transfer': 'Transfer Bank'
-            };
-            return methods[method] || method;
-        }
-
-        // Reset current transaction
-        function resetCurrentTransaction() {
-            currentTransaction = {
-                id: generateId(),
-                date: null,
-                items: [],
-                customerName: '',
-                paymentMethod: 'cash',
-                amountPaid: 0,
-                change: 0,
-                total: 0,
-                profit: 0
-            };
-
-            paymentMethodElement.value = 'cash';
-            customerNameElement.value = '';
-            amountPaidElement.value = '0';
-            changeAmountElement.textContent = '0';
-            pendingCustomerNameInput.value = '';
-
-            updateTransactionDisplay();
-        }
-
-        // View receipt
-        function viewReceipt(transactionId) {
-            const transaction = transactions.find(t => t.id === transactionId);
-            if (!transaction) return;
-
-            receiptContent.innerHTML = generateReceipt(transaction);
-            receiptModal.show();
-        }
-
-        // Show pending transactions
-        showPendingBtn.addEventListener('click', () => {
-            loadPendingTransactions();
-            pendingModal.show();
-        });
-
-        // Load pending transactions
-        function loadPendingTransactions() {
-            pendingTransactionsList.innerHTML = '';
-
-            if (pendingTransactions.length === 0) {
-                pendingTransactionsList.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada transaksi pending</td></tr>';
-                return;
-            }
-
-            pendingTransactions.forEach((transaction, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>#${transaction.id}</td>
-                    <td>${new Date(transaction.date).toLocaleString()}</td>
-                    <td>${transaction.customerName || '-'}</td>
-                    <td>${transaction.items.length} items</td>
-                    <td>${formatCurrency(transaction.total)}</td>
-                    <td>
-                        <button class="btn btn-sm btn-success me-1 load-pending" data-id="${transaction.id}">
-                            <i class="bi bi-cart-check"></i> Muat
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-pending" data-id="${transaction.id}">
-                            <i class="bi bi-trash"></i> Hapus
-                        </button>
-                    </td>
-                `;
-                pendingTransactionsList.appendChild(row);
-            });
-
-            document.querySelectorAll('.load-pending').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const pendingId = this.getAttribute('data-id');
-                    loadPendingTransaction(pendingId);
-                });
-            });
-
-            document.querySelectorAll('.delete-pending').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const pendingId = this.getAttribute('data-id');
-                    deletePendingTransaction(pendingId);
-                });
-            });
-        }
-
-        // Load pending transaction
-        async function loadPendingTransaction(pendingId) {
-            const pendingItem = pendingTransactions.find(p => p.id === pendingId);
-            if (!pendingItem) return;
-
-            currentTransaction = JSON.parse(JSON.stringify(pendingItem)); // Deep copy
-            currentTransaction.id = generateId(); // Assign a new temporary ID for the new transaction
-
-            const success = await deletePendingTransactionFromFirestore(pendingId);
-            if (success) {
-                updateTransactionDisplay();
-                pendingModal.hide();
-                alert('Transaksi pending berhasil dimuat!');
-            }
-        }
-
-        // Delete pending transaction
-        async function deletePendingTransaction(pendingId) {
-            if (confirm('Hapus transaksi pending ini?')) {
-                const success = await deletePendingTransactionFromFirestore(pendingId);
-                if (success) {
-                    alert('Transaksi pending berhasil dihapus!');
-                }
-            }
-        }
-
-        // Update pending count
-        function updatePendingCount() {
-            pendingCountElement.textContent = pendingTransactions.length;
-        }
-
-        // Handle product form submission (Add/Edit)
         productForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const name = productNameInput.value.trim();
-            const buyPrice = parseFloat(productBuyPriceInput.value);
-            const sellPrice = parseFloat(productSellPriceInput.value.replace(/[^0-9.]/g,""));
-            const stock = parseInt(productStockInput.value);
-            const imageFile = productImageUpload.files[0];
-
-            let imageUrl = null;
-
-            if (!name || isNaN(buyPrice) || isNaN(sellPrice) || isNaN(stock)) {
-                alert('Harap isi semua field dengan benar!');
+            
+            // PENTING: Periksa apakah pengguna sudah login
+            if (!auth.currentUser) {
+                alert("Anda harus login untuk menyimpan produk!");
                 return;
             }
 
-            if (buyPrice <= 0 || sellPrice <= 0 || stock < 0) {
-                alert('Harga dan stok harus valid!');
-                return;
-            }
-
-            if (sellPrice < buyPrice) {
-                alert('Harga jual tidak boleh lebih kecil dari harga beli!');
-                return;
-            }
-
-            if (imageFile) {
-                try {
-                    saveProductBtn.textContent = 'Mengunggah Gambar...';
-                    saveProductBtn.disabled = true;
-
-                    imageUrl = await uploadImageToCloudinary(imageFile);
-                    if (!imageUrl) {
-                        alert('Gagal mengunggah gambar ke Cloudinary.');
-                        saveProductBtn.textContent = 'Simpan Produk';
-                        saveProductBtn.disabled = false;
-                        return;
-                    }
-                } catch (error) {
-                    console.error('Error uploading image:', error);
-                    alert('Terjadi kesalahan saat mengunggah gambar. Coba lagi.');
-                    saveProductBtn.textContent = 'Simpan Produk';
-                    saveProductBtn.disabled = false;
-                    return;
-                }
-            } else if (editingProductId) {
-                const existingProduct = products.find(p => p.id === editingProductId);
-                if (existingProduct) {
-                    imageUrl = existingProduct.image;
-                }
-            }
+            saveProductBtn.disabled = true;
+            saveProductBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...';
 
             const productData = {
-                name,
-                buyPrice,
-                sellPrice,
-                stock,
-                image: imageUrl
+                name: productNameInput.value.trim(),
+                buyPrice: parseFloat(productBuyPriceInput.value) || 0,
+                sellPrice: parseFloat(productSellPriceInput.value) || 0,
+                stock: parseInt(productStockInput.value) || 0,
+                image: null // Logika upload gambar bisa ditambahkan di sini
             };
 
-            const success = await saveProductToFirestore(productData, editingProductId);
-
-            if (success) {
-                alert(editingProductId ? 'Produk berhasil diperbarui!' : 'Produk berhasil ditambahkan!');
-                editingProductId = null;
-                productForm.reset();
-                saveProductBtn.textContent = 'Simpan Produk';
-                saveProductBtn.classList.remove('btn-warning');
-                saveProductBtn.classList.add('btn-primary');
-                saveProductBtn.disabled = false;
-                cancelEditBtn.style.display = 'none';
-                productImagePreviewContainer.style.display = 'none';
-            } else {
-                saveProductBtn.textContent = 'Simpan Produk';
-                saveProductBtn.disabled = false;
-            }
-        });
-
-        // Function to upload image to Cloudinary
-        async function uploadImageToCloudinary(file) {
-            if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_CLOUD_NAME === 'ganti_dengan_cloud_name_anda') {
-                alert('Konfigurasi Cloudinary belum lengkap. Silakan cek ulang CLOUDINARY_CLOUD_NAME dan CLOUDINARY_UPLOAD_PRESET di kode.');
-                throw new Error('Cloudinary not configured');
-            }
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-            const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-
             try {
-                const response = await fetch(uploadUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Upload failed: ${errorData.error.message || response.statusText}`);
+                if (editingProductId) {
+                    // Update produk yang ada
+                    const productRef = doc(db, "products", editingProductId);
+                    await setDoc(productRef, productData, { merge: true });
+                    alert("Produk berhasil diperbarui!");
+                } else {
+                    // Tambah produk baru
+                    const productsCol = collection(db, "products");
+                    await addDoc(productsCol, productData);
+                    alert("Produk berhasil ditambahkan!");
                 }
-
-                const data = await response.json();
-                return data.secure_url;
+                resetProductForm();
             } catch (error) {
-                console.error('Cloudinary upload error:', error);
-                throw error;
-            }
-        }
-
-        // Handle image preview
-        productImageUpload.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    productImagePreview.src = e.target.result;
-                    productImagePreviewContainer.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            } else {
-                productImagePreview.src = '';
-                productImagePreviewContainer.style.display = 'none';
+                console.error("Error saving product: ", error);
+                alert("Gagal menyimpan produk ke database. Error: " + error.message);
+            } finally {
+                saveProductBtn.disabled = false;
+                saveProductBtn.innerHTML = '<i class="bi bi-save"></i> Simpan Produk';
             }
         });
-
-        // Edit product
+        
         function editProduct(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
@@ -2411,886 +569,45 @@
             productBuyPriceInput.value = product.buyPrice;
             productSellPriceInput.value = product.sellPrice;
             productStockInput.value = product.stock;
-            productImageUpload.value = '';
-
-            if (product.image) {
-                productImagePreview.src = product.image;
-                productImagePreviewContainer.style.display = 'block';
-            } else {
-                productImagePreview.src = '';
-                productImagePreviewContainer.style.display = 'none';
-            }
 
             saveProductBtn.textContent = 'Update Produk';
-            saveProductBtn.classList.remove('btn-primary');
             saveProductBtn.classList.add('btn-warning');
             cancelEditBtn.style.display = 'block';
-
-            const stockTabElement = document.getElementById('nav-stock-tab');
-            if (stockTabElement) {
-                const bsTab = new bootstrap.Tab(stockTabElement);
-                bsTab.show();
-            }
-
             productNameInput.focus();
         }
+        
+        async function deleteProduct(productId) {
+            if (!auth.currentUser) {
+                alert("Anda harus login untuk menghapus produk!");
+                return;
+            }
+            if (confirm('Yakin ingin menghapus produk ini?')) {
+                try {
+                    await deleteDoc(doc(db, "products", productId));
+                    alert("Produk berhasil dihapus.");
+                } catch(error) {
+                     console.error("Error deleting product: ", error);
+                     alert("Gagal menghapus produk. Error: " + error.message);
+                }
+            }
+        }
 
-        // Cancel Edit
-        cancelEditBtn.addEventListener('click', () => {
-            editingProductId = null;
+        function resetProductForm() {
             productForm.reset();
+            editingProductId = null;
+            productIdHidden.value = '';
             saveProductBtn.textContent = 'Simpan Produk';
             saveProductBtn.classList.remove('btn-warning');
-            saveProductBtn.classList.add('btn-primary');
             cancelEditBtn.style.display = 'none';
-            productImagePreview.src = '';
-            productImagePreviewContainer.style.display = 'none';
-        });
-
-        // Delete product
-        async function deleteProduct(productId) {
-            if (confirm('Hapus produk ini? Tindakan ini tidak dapat dibatalkan.')) {
-                const success = await deleteProductFromFirestore(productId);
-                if (success) {
-                    alert('Produk berhasil dihapus!');
-                }
-            }
         }
-
-        // Populate product filter dropdown
-        function populateProductFilterDropdown() {
-            reportProductFilter.innerHTML = '<option value="all">Semua Produk</option>';
-            products.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id;
-                option.textContent = product.name;
-                reportProductFilter.appendChild(option);
-            });
-        }
-
-        // Generate report
-        generateReportBtn.addEventListener('click', () => {
-            const startDate = reportStartDate.value;
-            const endDate = reportEndDate.value;
-            const selectedProductId = reportProductFilter.value;
-
-            if (!startDate || !endDate) {
-                alert('Harap pilih tanggal mulai dan tanggal akhir!');
-                return;
-            }
-
-            if (new Date(startDate) > new Date(endDate)) {
-                alert('Tanggal mulai tidak boleh lebih besar dari tanggal akhir!');
-                return;
-            }
-
-            let filteredTransactions = transactions.filter(t => {
-                const transactionDate = new Date(t.date).toISOString().split('T')[0];
-                return transactionDate >= startDate && transactionDate <= endDate;
-            });
-
-            if (selectedProductId !== 'all') {
-                filteredTransactions = filteredTransactions.map(transaction => {
-                    const filteredItems = transaction.items.filter(item => item.productId === selectedProductId);
-                    const newTotal = filteredItems.reduce((sum, item) => sum + item.total, 0);
-                    const newProfit = filteredItems.reduce((sum, item) => sum + ((item.hargaBarang - item.buyPrice) * item.kuantitas), 0);
-                    return { ...transaction, items: filteredItems, total: newTotal, profit: newProfit };
-                }).filter(transaction => transaction.items.length > 0);
-            }
-
-            const totalSales = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
-            const totalPurchases = filteredTransactions.reduce((sum, t) => {
-                return sum + t.items.reduce((itemSum, i) => itemSum + (i.buyPrice * i.kuantitas), 0);
-            }, 0);
-            const grossProfit = totalSales - totalPurchases;
-
-            reportTotalSales.textContent = formatCurrency(totalSales);
-            reportTotalPurchases.textContent = formatCurrency(totalPurchases);
-            reportGrossProfit.textContent = formatCurrency(grossProfit);
-
-            reportTransactions.innerHTML = '';
-
-            if (filteredTransactions.length === 0) {
-                reportTransactions.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada transaksi</td></tr>';
-            } else {
-                filteredTransactions.forEach(transaction => {
-                    const transactionProfit = transaction.total - transaction.items.reduce((sum, i) => sum + (i.buyPrice * i.kuantitas), 0);
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${new Date(transaction.date).toLocaleDateString('id-ID')}</td>
-                        <td>#${transaction.id}</td>
-                        <td>${formatCurrency(transaction.total)}</td>
-                        <td>${formatCurrency(transactionProfit)}</td>
-                    `;
-                    reportTransactions.appendChild(row);
-                });
-            }
-
-            generateItemProfitReport(filteredTransactions, selectedProductId);
-            generateStockReport(selectedProductId);
-        });
-
-        // Generate Item Profit Report function
-        function generateItemProfitReport(filteredTransactions, selectedProductId = 'all') {
-            reportItemProfitTable.innerHTML = '';
-            const itemSales = {};
-
-            filteredTransactions.forEach(transaction => {
-                transaction.items.forEach(item => {
-                    if (selectedProductId === 'all' || item.productId === selectedProductId) {
-                        if (!itemSales[item.productId]) {
-                            itemSales[item.productId] = {
-                                name: item.namaBarang,
-                                qty: 0,
-                                totalSales: 0,
-                                totalHPP: 0,
-                                totalProfit: 0
-                            };
-                        }
-                        itemSales[item.productId].qty += item.kuantitas;
-                        itemSales[item.productId].totalSales += item.total;
-                        itemSales[item.productId].totalHPP += (item.buyPrice * item.kuantitas);
-                        itemSales[item.productId].totalProfit += (item.hargaBarang - item.buyPrice) * item.kuantitas;
-                    }
-                });
-            });
-
-            const sortedItems = Object.values(itemSales).sort((a, b) => b.totalSales - a.totalSales);
-
-            if (sortedItems.length === 0) {
-                reportItemProfitTable.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data penjualan per item dalam periode ini atau untuk produk yang dipilih.</td></tr>';
-            } else {
-                sortedItems.forEach(item => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${item.name}</td>
-                        <td>${item.qty}</td>
-                        <td>${formatCurrency(item.totalSales)}</td>
-                        <td>${formatCurrency(item.totalHPP)}</td>
-                        <td>${formatCurrency(item.totalProfit)}</td>
-                    `;
-                    reportItemProfitTable.appendChild(row);
-                });
-            }
-        }
-
-        // Generate Stock Report function
-        function generateStockReport(selectedProductId = 'all') {
-            reportStockTable.innerHTML = '';
-
-            let filteredProductsForStock = products;
-            if (selectedProductId !== 'all') {
-                filteredProductsForStock = products.filter(p => p.id === selectedProductId);
-            }
-
-            if (filteredProductsForStock.length === 0) {
-                reportStockTable.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada produk dalam stok atau untuk produk yang dipilih.</td></tr>';
-                return;
-            }
-
-            filteredProductsForStock.forEach(product => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${product.name}</td>
-                    <td>${product.stock}</td>
-                    <td>${formatCurrency(product.buyPrice)}</td>
-                    <td>${formatCurrency(product.sellPrice)}</td>
-                `;
-                reportStockTable.appendChild(row);
-            });
-        }
-
-        // Download report as PDF
-        downloadReportPdfBtn.addEventListener('click', function () {
-            const startDate = reportStartDate.value;
-            const endDate = reportEndDate.value;
-            const selectedProductId = reportProductFilter.value;
-            const selectedProductName = reportProductFilter.options[reportProductFilter.selectedIndex].text;
-
-            if (!startDate || !endDate) {
-                alert('Harap generate laporan terlebih dahulu!');
-                return;
-            }
-
-            let filteredTransactions = transactions.filter(t => {
-                const transactionDate = new Date(t.date).toISOString().split('T')[0];
-                return transactionDate >= startDate && transactionDate <= endDate;
-            });
-
-            if (selectedProductId !== 'all') {
-                filteredTransactions = filteredTransactions.map(transaction => {
-                    const filteredItems = transaction.items.filter(item => item.productId === selectedProductId);
-                    const newTotal = filteredItems.reduce((sum, item) => sum + item.total, 0);
-                    const newProfit = filteredItems.reduce((sum, item) => sum + ((item.hargaBarang - item.buyPrice) * item.kuantitas), 0);
-                    return { ...transaction, items: filteredItems, total: newTotal, profit: newProfit };
-                }).filter(transaction => transaction.items.length > 0);
-            }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            let currentY = 10;
-            const margin = 10;
-            const lineHeight = 7;
-
-            doc.setFontSize(16);
-            doc.text(`Laporan Penjualan & Laba`, margin, currentY);
-            currentY += lineHeight;
-            doc.setFontSize(10);
-            doc.text(`Periode: ${startDate} s/d ${endDate}`, margin, currentY);
-            currentY += lineHeight;
-            if (selectedProductId !== 'all') {
-                doc.text(`Produk: ${selectedProductName}`, margin, currentY);
-                currentY += lineHeight;
-            }
-            currentY += lineHeight; // extra space
-
-            const totalSales = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
-            const totalPurchases = filteredTransactions.reduce((sum, t) => {
-                return sum + t.items.reduce((itemSum, i) => itemSum + (i.buyPrice * i.kuantitas), 0);
-            }, 0);
-            const grossProfit = totalSales - totalPurchases;
-
-            doc.setFontSize(12);
-            doc.text(`Ringkasan:`, margin, currentY);
-            currentY += 5; // space before table
-
-            doc.autoTable({
-                head: [['Metrik', 'Nilai']],
-                body: [
-                    ['Total Penjualan', formatCurrency(totalSales)],
-                    ['Total Pembelian (HPP)', formatCurrency(totalPurchases)],
-                    ['Laba Kotor', formatCurrency(grossProfit)]
-                ],
-                startY: currentY,
-                theme: 'grid',
-                styles: { fontSize: 10, cellPadding: 2 },
-                headStyles: { fillColor: [13, 110, 253] }
-            });
-
-            currentY = doc.autoTable.previous.finalY + 10;
-            if (currentY + 20 > doc.internal.pageSize.height) {
-                doc.addPage();
-                currentY = 10;
-            }
-            doc.setFontSize(12);
-            doc.text(`Detail Transaksi:`, margin, currentY);
-            currentY += 5;
-
-            const transactionTableColumn = ["Tanggal", "ID Transaksi", "Total", "Laba"];
-            const transactionTableRows = [];
-
-            filteredTransactions.forEach(transaction => {
-                const transactionProfit = transaction.total - transaction.items.reduce((sum, i) => sum + (i.buyPrice * i.kuantitas), 0);
-
-                if (transaction.items.length > 0) {
-                    const transactionData = [
-                        new Date(transaction.date).toLocaleDateString('id-ID'),
-                        `#${transaction.id}`,
-                        formatCurrency(transaction.total),
-                        formatCurrency(transactionProfit)
-                    ];
-                    transactionTableRows.push(transactionData);
-                }
-            });
-
-            doc.autoTable({
-                head: [transactionTableColumn],
-                body: transactionTableRows,
-                startY: currentY,
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [22, 160, 133] }
-            });
-
-            currentY = doc.autoTable.previous.finalY + 10;
-            if (currentY + 20 > doc.internal.pageSize.height) {
-                doc.addPage();
-                currentY = 10;
-            }
-            doc.setFontSize(16);
-            doc.text(`Laporan Penjualan & Laba per Item`, margin, currentY);
-            currentY += lineHeight;
-            doc.setFontSize(10);
-            doc.text(`Periode: ${startDate} s/d ${endDate}`, margin, currentY);
-            currentY += lineHeight;
-            if (selectedProductId !== 'all') {
-                doc.text(`Produk: ${selectedProductName}`, margin, currentY);
-                currentY += lineHeight;
-            }
-            currentY += lineHeight; // extra space
-
-            const itemSales = {};
-            filteredTransactions.forEach(transaction => {
-                transaction.items.forEach(item => {
-                    if (selectedProductId === 'all' || item.productId === selectedProductId) {
-                        if (!itemSales[item.productId]) {
-                            itemSales[item.productId] = {
-                                name: item.namaBarang,
-                                qty: 0,
-                                totalSales: 0,
-                                totalHPP: 0,
-                                totalProfit: 0
-                            };
-                        }
-                        itemSales[item.productId].qty += item.kuantitas;
-                        itemSales[item.productId].totalSales += item.total;
-                        itemSales[item.productId].totalHPP += (item.buyPrice * item.kuantitas);
-                        itemSales[item.productId].totalProfit += (item.hargaBarang - item.buyPrice) * item.kuantitas;
-                    }
-                });
-            });
-            const sortedItems = Object.values(itemSales).sort((a, b) => b.totalSales - a.totalSales);
-
-            const itemProfitTableColumn = ["Nama Produk", "Terjual (Qty)", "Total Penjualan", "Total HPP", "Total Laba"];
-            const itemProfitTableRows = sortedItems.map(item => [
-                item.name,
-                item.qty,
-                formatCurrency(item.totalSales),
-                formatCurrency(item.totalHPP),
-                formatCurrency(item.totalProfit)
-            ]);
-
-            doc.autoTable({
-                head: [itemProfitTableColumn],
-                body: itemProfitTableRows,
-                startY: currentY,
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [255, 193, 7] }
-            });
-
-            currentY = doc.autoTable.previous.finalY + 10;
-            if (currentY + 20 > doc.internal.pageSize.height) {
-                doc.addPage();
-                currentY = 10;
-            }
-            doc.setFontSize(16);
-            doc.text(`Laporan Stok Produk (Terkini)`, margin, currentY);
-            currentY += lineHeight;
-            if (selectedProductId !== 'all') {
-                doc.setFontSize(10);
-                doc.text(`Produk: ${selectedProductName}`, margin, currentY);
-                currentY += lineHeight;
-            }
-            currentY += lineHeight; // extra space
-
-            const stockTableColumn = ["Nama Produk", "Stok Tersedia", "Harga Beli", "Harga Jual"];
-            const stockTableRows = filteredProductsForStock.map(product => [
-                product.name,
-                product.stock,
-                formatCurrency(product.buyPrice),
-                formatCurrency(product.sellPrice)
-            ]);
-
-            doc.autoTable({
-                head: [stockTableColumn],
-                body: stockTableRows,
-                startY: currentY,
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [108, 117, 125] }
-            });
-
-            const fileName = `Laporan_POS_${startDate}_${endDate}_${selectedProductName.replace(/\s+/g, '_')}.pdf`;
-            doc.save(fileName);
-            alert('Laporan PDF berhasil diunduh!');
-        });
-
-        // Backup data
-        backupBtn.addEventListener('click', () => {
-            const backupData = {};
-
-            if (backupProductsCheckbox.checked) {
-                backupData.products = products;
-            }
-
-            if (backupTransactionsCheckbox.checked) {
-                backupData.transactions = transactions;
-            }
-
-            if (backupPendingCheckbox.checked) {
-                backupData.pendingTransactions = pendingTransactions;
-            }
-
-            backupData.settings = settings;
-
-            if (Object.keys(backupData).length === 0) {
-                alert('Tidak ada data yang dipilih untuk di-backup!');
-                return;
-            }
-
-            const dataStr = JSON.stringify(backupData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-
-            const exportFileDefaultName = `pos_backup_${new Date().toISOString().slice(0,10)}.json`;
-
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            document.body.appendChild(linkElement);
-            linkElement.click();
-            document.body.removeChild(linkElement);
-            alert('Data berhasil di-backup!');
-        });
-
-        // Restore data
-        restoreBtn.addEventListener('click', () => {
-            if (!restoreFile.files.length) {
-                alert('Harap pilih file backup terlebih dahulu!');
-                return;
-            }
-
-            if (confirm('Restore data akan mengganti data yang ada di Firebase. Pastikan Anda sudah membackup data terbaru. Lanjutkan?')) {
-                const file = restoreFile.files[0];
-                const reader = new FileReader();
-
-                reader.onload = async (event) => {
-                    try {
-                        const data = JSON.parse(event.target.result);
-
-                        let restoreConfirmed = false;
-                        if (data.products) {
-                            if (confirm('Restore data produk ke Firebase? (Ini akan menghapus dan menimpa semua data produk yang ada di Firebase)')) {
-                                // Delete all existing products first
-                                const existingProductRefs = await db.collection('products').listDocuments();
-                                for (const docRef of existingProductRefs) {
-                                    await docRef.delete();
-                                }
-                                // Add new products
-                                for (const product of data.products) {
-                                    // Use set with merge: true to avoid overwriting existing documents if they share an ID
-                                    // Or use .add() to generate new IDs for restored products
-                                    await db.collection('products').add(product); // Add generates new ID
-                                }
-                                restoreConfirmed = true;
-                            }
-                        }
-
-                        if (data.transactions) {
-                            if (confirm('Restore data transaksi ke Firebase? (Ini akan menghapus dan menimpa semua data transaksi yang ada di Firebase)')) {
-                                const existingTransactionRefs = await db.collection('transactions').listDocuments();
-                                for (const docRef of existingTransactionRefs) {
-                                    await docRef.delete();
-                                }
-                                for (const transaction of data.transactions) {
-                                    await db.collection('transactions').add(transaction); // Add generates new ID
-                                }
-                                restoreConfirmed = true;
-                            }
-                        }
-
-                        if (data.pendingTransactions) {
-                            if (confirm('Restore transaksi pending ke Firebase? (Ini akan menghapus dan menimpa semua transaksi pending yang ada di Firebase)')) {
-                                const existingPendingRefs = await db.collection('pendingTransactions').listDocuments();
-                                for (const docRef of existingPendingRefs) {
-                                    await docRef.delete();
-                                }
-                                for (const pending of data.pendingTransactions) {
-                                    await db.collection('pendingTransactions').add(pending); // Add generates new ID
-                                }
-                                restoreConfirmed = true;
-                            }
-                        }
-
-                        if (data.settings) {
-                            if (confirm('Restore pengaturan aplikasi? (Ini akan menimpa pengaturan lokal yang ada)')) {
-                                settings = data.settings;
-                                localStorage.setItem('pos_settings', JSON.stringify(settings));
-                                restoreConfirmed = true;
-                            }
-                        }
-
-                        if (restoreConfirmed) {
-                            await init(); // Re-initialize to fetch all data again
-                            alert('Data berhasil di-restore ke Firebase dan diperbarui!');
-                        } else {
-                            alert('Tidak ada data yang di-restore.');
-                        }
-
-                    } catch (error) {
-                        alert('Gagal memproses file backup: ' + error.message);
-                        console.error("Restore error:", error);
-                    }
-                };
-
-                reader.readAsText(file);
-            }
-        });
-
-
-        // Print receipt
-        printReceiptBtn.addEventListener('click', () => {
-            const modalFooter = document.querySelector('#receiptModal .modal-footer');
-            if (modalFooter) modalFooter.classList.add('d-none');
-
-            const receiptElement = document.getElementById('printable-receipt');
-            if (settings.printerPaperSize === '58mm') {
-                receiptElement.style.maxWidth = '220px';
-            } else if (settings.printerPaperSize === '80mm') {
-                receiptElement.style.maxWidth = '300px';
-            } else {
-                receiptElement.style.maxWidth = '';
-            }
-
-            window.print();
-
-            if (modalFooter) modalFooter.classList.remove('d-none');
-            receiptElement.style.maxWidth = '300px';
-        });
-
-        // Share receipt as image
-        shareReceiptImageBtn.addEventListener('click', () => {
-            const receiptElement = document.getElementById('printable-receipt');
-            if (!receiptElement) {
-                alert('Struk tidak ditemukan.');
-                return;
-            }
-
-            const modalFooter = document.querySelector('#receiptModal .modal-footer');
-            if (modalFooter) modalFooter.classList.add('d-none');
-
-            html2canvas(receiptElement, { scale: 2 }).then(canvas => {
-                if (modalFooter) modalFooter.classList.remove('d-none');
-
-                canvas.toBlob(async (blob) => {
-                    if (navigator.share) {
-                        try {
-                            const file = new File([blob], `struk_pembayaran_${currentTransaction.id}.png`, { type: 'image/png' });
-                            await navigator.share({
-                                files: [file],
-                                title: 'Struk Pembayaran POS',
-                                text: 'Berikut struk pembayaran dari toko kami.'
-                            });
-                            console.log('Struk berhasil dibagikan');
-                        } catch (error) {
-                            console.error('Error sharing:', error);
-                            alert('Gagal berbagi struk. Fitur ini mungkin tidak didukung di perangkat atau browser Anda. Silakan download secara manual.');
-                            const imageDataUrl = canvas.toDataURL('image/png');
-                            const downloadLink = document.createElement('a');
-                            downloadLink.href = imageDataUrl;
-                            downloadLink.download = `struk_pembayaran_${currentTransaction.id}.png`;
-                            document.body.appendChild(downloadLink);
-                            downloadLink.click();
-                            document.body.removeChild(downloadLink);
-                        }
-                    } else {
-                        alert('Fitur berbagi tidak didukung di browser ini. Silakan download gambar struk dan bagikan secara manual.');
-                        const imageDataUrl = canvas.toDataURL('image/png');
-                        const downloadLink = document.createElement('a');
-                        downloadLink.href = imageDataUrl;
-                        downloadLink.download = `struk_pembayaran_${currentTransaction.id}.png`;
-                        document.body.appendChild(downloadLink);
-                        downloadLink.click();
-                        document.body.removeChild(downloadLink);
-                    }
-                }, 'image/png');
-            }).catch(error => {
-                console.error('Error generating receipt image:', error);
-                alert('Gagal membuat gambar struk. Silakan coba lagi.');
-                if (modalFooter) modalFooter.classList.remove('d-none');
-            });
-        });
-
-        // Load settings
-        function loadSettings() {
-            storeNameInput.value = settings.storeName;
-            storeAddressInput.value = settings.storeAddress;
-            storePhoneInput.value = settings.storePhone;
-            receiptFooterInput.value = settings.receiptFooter;
-            printerPaperSizeSelect.value = settings.printerPaperSize;
-            printPreviewSelect.value = settings.printPreview;
-            currencySymbolInput.value = settings.currencySymbol;
-
-            // Add sync toggle to settings form
-            const syncToggle = document.createElement('div');
-            syncToggle.className = 'mb-3 form-check form-switch';
-            syncToggle.innerHTML = `
-                <input class="form-check-input" type="checkbox" id="sync-enabled" ${settings.syncEnabled ? 'checked' : ''}>
-                <label class="form-check-label" for="sync-enabled">Sinkronisasi Online</label>
-            `;
-            const cardBodySettings = document.querySelector('#settings .card-body');
-            // Ensure we don't add it multiple times
-            if (!cardBodySettings.querySelector('#sync-enabled')) {
-                 cardBodySettings.insertBefore(syncToggle, cardBodySettings.firstChild);
-            }
-
-            document.getElementById('sync-enabled').addEventListener('change', function() {
-                settings.syncEnabled = this.checked;
-                localStorage.setItem('pos_settings', JSON.stringify(settings));
-                if (this.checked && isOnline) {
-                    syncData();
-                }
-            });
-        }
-
-        // Save store settings
-        storeSettingsForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            settings.storeName = storeNameInput.value.trim();
-            settings.storeAddress = storeAddressInput.value.trim();
-            settings.storePhone = storePhoneInput.value.trim();
-            settings.receiptFooter = receiptFooterInput.value.trim();
-            localStorage.setItem('pos_settings', JSON.stringify(settings));
-            alert('Pengaturan toko berhasil disimpan!');
-            if (receiptModal._isShown) {
-                receiptContent.innerHTML = generateReceipt(currentTransaction);
-            }
-        });
-
-        // Save printer settings
-        savePrinterSettingsBtn.addEventListener('click', () => {
-            settings.printerPaperSize = printerPaperSizeSelect.value;
-            settings.printPreview = printPreviewSelect.value;
-            localStorage.setItem('pos_settings', JSON.stringify(settings));
-            alert('Pengaturan printer berhasil disimpan!');
-        });
-
-        // Save other settings
-        saveOtherSettingsBtn.addEventListener('click', async () => {
-            settings.currencySymbol = currencySymbolInput.value.trim();
-            localStorage.setItem('pos_settings', JSON.stringify(settings));
-            alert('Pengaturan lainnya berhasil disimpan!');
-            // Re-fetch and reload data to reflect currency change
-            await fetchProducts();
-            await fetchTransactions();
-            await fetchPendingTransactions();
-            loadDashboard();
-            updateTransactionDisplay();
-        });
-
-        // Format currency
-        function formatCurrency(amount) {
-            return settings.currencySymbol + parseFloat(amount).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-        }
-
-        // Format number for input field
-        function formatNumberForInput(amount) {
-            return parseFloat(amount).toLocaleString('en-US', { useGrouping: false, minimumFractionDigits: 0, maximumFractionDigits: 0 });
-        }
-
-        // Event listeners
-        amountPaidElement.addEventListener('input', () => {
-            const cleanValue = amountPaidElement.value.replace(/[^0-9.]/g,"");
-            amountPaidElement.value = cleanValue;
-            calculateChange();
-        });
-
-        paymentMethodElement.addEventListener('change', () => {
-            currentTransaction.paymentMethod = paymentMethodElement.value;
-        });
-        customerNameElement.addEventListener('input', () => {
-            currentTransaction.customerName = customerNameElement.value;
-        });
-
-        pendingCustomerNameInput.addEventListener('input', () => {
-            // This input is primarily for initially *setting* the customer name before saving as pending.
-        });
-
-        productSearchElement.addEventListener('input', (e) => {
-            loadProducts(e.target.value, currentProductView);
-        });
-        productListSearch.addEventListener('input', (e) => {
-            loadProducts(e.target.value, currentProductView);
-        });
-
-        viewListBtn.addEventListener('click', () => {
-            viewListBtn.classList.add('active');
-            viewGridBtn.classList.remove('active');
-            loadProducts(productSearchElement.value, 'list');
-        });
-
-        viewGridBtn.addEventListener('click', () => {
-            viewGridBtn.classList.add('active');
-            viewListBtn.classList.remove('active');
-            loadProducts(productSearchElement.value, 'grid');
-        });
-
-        // Quick menu button event listeners
-        quickSalesBtn.addEventListener('click', () => {
-            const salesTabElement = document.getElementById('nav-sales-tab');
-            if (salesTabElement) {
-                const bsTab = new bootstrap.Tab(salesTabElement);
-                bsTab.show();
-                // Untuk mobile, aktifkan juga item di footer
-                if (window.innerWidth <= 768) {
-                    mobileFooterNav.querySelectorAll('.nav-link').forEach(link => {
-                        link.classList.remove('active');
-                    });
-                    document.getElementById('footer-sales-tab').classList.add('active');
-                }
-            }
-        });
-
-        quickAddProductBtn.addEventListener('click', () => {
-            const stockTabElement = document.getElementById('nav-stock-tab');
-            if (stockTabElement) {
-                const bsTab = new bootstrap.Tab(stockTabElement);
-                bsTab.show();
-                // Untuk mobile, aktifkan juga item di footer
-                if (window.innerWidth <= 768) {
-                    mobileFooterNav.querySelectorAll('.nav-link').forEach(link => {
-                        link.classList.remove('active');
-                    });
-                    document.getElementById('footer-stock-tab').classList.add('active');
-                }
-            }
-        });
-
-
-        // ... (kode JavaScript lainnya di atas tetap sama) ...
-
-        // Initialize the app
-      async function init() {
-            // Set default dates for report
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-            reportStartDate.valueAsDate = firstDay;
-            reportEndDate.valueAsDate = lastDay;
-
-            // Load settings
-            loadSettings();
-
-            // Check if we need to sync data
-            const lastSync = localStorage.getItem(LOCAL_LAST_SYNC_KEY);
-            const oneHourAgo = new Date(Date.now() - 3600000).toISOString();
-
-            if (isOnline && settings.syncEnabled && (!lastSync || lastSync < oneHourAgo)) {
-                await syncData();
-            } else {
-                // Load from local storage if not syncing
-                await fetchProducts();
-                await fetchTransactions();
-                await fetchPendingTransactions();
-            }
-
-            // Set current transaction ID
-            currentTransaction.id = generateId();
-
-            // --- REVISED AND FIXED TAB HANDLING LOGIC ---
-            const sidebarNav = document.getElementById('sidebar-nav');
-            const mobileFooterNav = document.querySelector('.mobile-footer-nav');
-
-            if (sidebarNav && mobileFooterNav) {
-                const allTabTriggers = document.querySelectorAll('#sidebar-nav .nav-link, .mobile-footer-nav .nav-link');
-                
-                // Function to synchronize active states across both navs
-                const syncNavs = (activeTrigger) => {
-                    const activeTabHref = activeTrigger.getAttribute('href');
-
-                    // Sync sidebar navigation
-                    sidebarNav.querySelectorAll('.nav-link').forEach(link => {
-                        if (link.getAttribute('href') === activeTabHref) {
-                            link.classList.add('active');
-                            link.setAttribute('aria-selected', 'true');
-                        } else {
-                            link.classList.remove('active');
-                            link.setAttribute('aria-selected', 'false');
-                        }
-                    });
-
-                    // Sync mobile footer navigation
-                    mobileFooterNav.querySelectorAll('.nav-link').forEach(link => {
-                        if (link.getAttribute('href') === activeTabHref) {
-                            link.classList.add('active');
-                            link.setAttribute('aria-selected', 'true');
-                        } else {
-                            link.classList.remove('active');
-                            link.setAttribute('aria-selected', 'false');
-                        }
-                    });
-                };
-                
-                // Listen for when a tab has been successfully shown
-                allTabTriggers.forEach(trigger => {
-                    trigger.addEventListener('shown.bs.tab', (event) => {
-                        // event.target is the nav-link that was just activated
-                        // We use it to sync the active state on both navigations
-                        syncNavs(event.target);
-                    });
-                });
-            }
-            
-            // Set initial active tab on page load
-            const currentHash = window.location.hash;
-            let initialTabId = currentHash || '#dashboard'; 
-
-            // Find the trigger link for the initial tab
-            const initialTrigger = document.querySelector(`#sidebar-nav a[href="${initialTabId}"]`);
-            if (initialTrigger) {
-                // Use Bootstrap's method to show the tab
-                const bsTab = new bootstrap.Tab(initialTrigger);
-                bsTab.show(); 
-                // The 'shown.bs.tab' event listener we set up above will automatically 
-                // handle syncing the active class on both the sidebar and footer menu.
-            }
-            // --- END OF REVISED LOGIC ---
-
-            loadHistory(); // Ensure history is loaded on initialization
+        
+        cancelEditBtn.addEventListener('click', resetProductForm);
+
+        function loadDashboard() {
+            document.getElementById('total-products').textContent = products.length;
+            // Logika lain untuk dashboard bisa ditambahkan di sini
         }
 
     </script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-
-        const firebaseAuthConfig = { // Renamed to avoid conflict with main firebaseConfig
-            apiKey: "AIzaSyBVCynAyWLPqwhkEx4dR0k5J_OsL-0Q_rY",
-            authDomain: "kasir-toko-70d61.firebaseapp.com",
-            projectId: "kasir-toko-70d61",
-            storageBucket: "kasir-toko-70d61.firebasestorage.app",
-            messagingSenderId: "1057810583954",
-            appId: "1:1057810583954:web:788e1058ad4a07eb84f14b"
-        };
-
-        const app = initializeApp(firebaseAuthConfig);
-        const auth = getAuth(app);
-
-        document.getElementById("login-form").addEventListener("submit", (e) => {
-            e.preventDefault();
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            signInWithEmailAndPassword(auth, email, password)
-                .then(() => location.reload())
-                .catch(err => alert("Login gagal: " + err.message));
-        });
-
-        onAuthStateChanged(auth, user => {
-            const loginContainer = document.getElementById("login-container");
-            const mainContent = document.querySelector(".main-content");
-            const navBar = document.querySelector(".navbar");
-            const wrapper = document.getElementById("wrapper");
-            const mobileFooterNav = document.querySelector('.mobile-footer-nav'); // Get the mobile footer nav
-
-            if (user) {
-                if (loginContainer) loginContainer.style.display = "none";
-                if (mainContent) mainContent.style.display = "block";
-                // Show navbar only on mobile, hide on desktop (handled by CSS @media)
-                if (navBar) navBar.style.display = window.innerWidth <= 768 ? "flex" : "none";
-                if (wrapper) wrapper.style.display = "flex"; // Show wrapper
-
-                // Show mobile footer nav on mobile, hide on desktop (handled by CSS @media)
-                if (mobileFooterNav) mobileFooterNav.style.display = window.innerWidth <= 768 ? "flex" : "none";
-
-
-                // Call init only once after successful login and DOM is ready
-                // This check for typeof init === 'function' and DOMContentLoaded ensures init runs correctly
-                if (document.readyState === 'loading') { // Loading, wait for DOMContentLoaded
-                    document.addEventListener('DOMContentLoaded', init);
-                } else { // Already loaded, run init immediately
-                    if (typeof init === 'function') init();
-                }
-
-            } else {
-                if (loginContainer) loginContainer.style.display = "flex"; // Use flex to center login
-                if (mainContent) mainContent.style.display = "none";
-                if (navBar) navBar.style.display = "none"; // Hide navbar
-                if (wrapper) wrapper.style.display = "none"; // Hide wrapper
-                if (mobileFooterNav) mobileFooterNav.style.display = "none"; // Hide mobile footer nav
-            }
-        });
-    </script>
-
 </body>
 </html>
