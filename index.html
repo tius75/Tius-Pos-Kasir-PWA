@@ -964,9 +964,9 @@
     
     <script>
         // --- Configuration ---
-        // !!! PENTING: GANTI INI DENGAN KREDENSIAL CLOUDINARY ASLI ANDA !!!
-        const CLOUDINARY_CLOUD_NAME = 'ganti_dengan_cloud_name_anda'; // Contoh: 'your_cloud_name'
-        const CLOUDINARY_UPLOAD_PRESET = 'ganti_dengan_upload_preset_anda'; // Contoh: 'your_upload_preset'
+        // !!! IMPORTANT: REPLACE THESE WITH YOUR ACTUAL CLOUDINARY CREDENTIALS !!!
+        const CLOUDINARY_CLOUD_NAME = 'ganti_dengan_cloud_name_anda'; // Example: 'your_cloud_name'
+        const CLOUDINARY_UPLOAD_PRESET = 'ganti_dengan_upload_preset_anda'; // Example: 'your_upload_preset'
 
         const firebaseConfig = {
             apiKey: "AIzaSyBVCynAyWLPqwhkEx4dR0k5J_OsL-0Q_rY",
@@ -988,24 +988,24 @@
             })
             .catch((err) => {
                 if (err.code === 'failed-precondition') {
-                    // Ini biasanya disebabkan oleh banyak tab atau versi IndexedDB yang tidak kompatibel.
+                    // This is usually due to multiple tabs or an incompatible IndexedDB version.
                     console.warn("Offline persistence failed: Multiple tabs open or incompatible IndexedDB. Trying to clear IndexedDB and retry...");
-                    // Coba bersihkan IndexedDB untuk memperbaiki masalah.
-                    // Ini adalah solusi dan mungkin menyebabkan kehilangan data jika tidak ditangani dengan hati-hati,
-                    // tetapi untuk POS sederhana, ini adalah cara umum untuk menyelesaikan failed-precondition.
+                    // Try to clear IndexedDB to fix the issue.
+                    // This is a workaround and might lead to data loss if not handled carefully,
+                    // but for a simple POS, it's a common way to resolve the failed-precondition.
                     if (window.indexedDB && window.indexedDB.deleteDatabase) {
-                        window.indexedDB.deleteDatabase(db.app.name); // Hapus Firebase IndexedDB
+                        window.indexedDB.deleteDatabase(db.app.name); // Delete the Firebase IndexedDB
                         alert("Database lokal telah dibersihkan karena masalah kompatibilitas. Silakan refresh halaman.");
-                        location.reload(); // Muat ulang halaman untuk menginisialisasi ulang persistence
+                        location.reload(); // Reload the page to re-initialize persistence
                     } else {
-                        console.warn("IndexedDB.deleteDatabase tidak didukung, tidak dapat membersihkan persistence lokal.");
+                        console.warn("IndexedDB.deleteDatabase not supported, cannot clear local persistence.");
                         alert("Gagal mengaktifkan persistence offline. Aplikasi akan beroperasi dalam mode online saja. (Kode: failed-precondition)");
                     }
                 } else if (err.code === 'unimplemented') {
-                    console.warn("Offline persistence tidak tersedia di browser ini. Aplikasi hanya akan berfungsi dalam mode online.");
-                    alert("Persistence offline tidak tersedia di browser ini. Aplikasi hanya akan beroperasi dalam mode online.");
+                    console.warn("Offline persistence is not available in this browser. App will work in online mode only.");
+                    alert("Persistence offline tidak tersedia di browser ini. Aplikasi akan beroperasi dalam mode online saja.");
                 } else {
-                    console.error("Kesalahan mengaktifkan persistence offline:", err);
+                    console.error("Error enabling offline persistence:", err);
                     alert("Gagal mengaktifkan persistence offline. Aplikasi mungkin akan beroperasi dalam mode online saja. (Error: " + err.code + ")");
                 }
             });
@@ -1354,26 +1354,26 @@
 
                     // Save to local storage
                     localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(products));
-                    console.log("Produk berhasil diambil dari Firebase."); // LOG SUCCESS
                 } else {
                     // Fall back to local storage
                     products = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
-                    console.log('Menggunakan data produk lokal.');
+                    console.log('Using local products data');
                 }
 
                 loadProducts(productSearchElement.value, currentProductView);
                 populateProductFilterDropdown();
                 loadDashboard();
             } catch (error) {
-                console.error("Error fetching products:", error);
+                console.error("Error fetching products: ", error);
                 // Fall back to local storage
                 products = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
                 loadProducts(productSearchElement.value, currentProductView);
                 populateProductFilterDropdown();
                 loadDashboard();
-                alert("Gagal memuat produk dari database. Menggunakan data lokal. (Error: " + error.message + ")"); // Notifikasi lebih spesifik
+                alert("Gagal memuat produk dari database. Menggunakan data lokal.");
             }
         }
+
 
         // Fetch transactions from Firebase or local storage
         async function fetchTransactions() {
@@ -1381,7 +1381,25 @@
                 if (isOnline && settings.syncEnabled) {
                     const transactionsCol = db.collection('transactions');
                     const snapshot = await transactionsCol.orderBy('date', 'desc').get({ source: 'server' });
-                    transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    // Filter dan validasi transaksi di sini
+                    transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(t => {
+                        // Pastikan t dan t.date ada dan valid sebelum memprosesnya
+                        const dateValue = t.date;
+                        if (!dateValue) {
+                            console.warn("Transaksi dengan ID", t.id, "memiliki nilai tanggal yang kosong atau null.");
+                            return false; // Jangan sertakan transaksi ini
+                        }
+                        const dateObject = new Date(dateValue);
+                        if (isNaN(dateObject.getTime())) { // Periksa apakah tanggal valid
+                            console.warn("Transaksi dengan ID", t.id, "memiliki nilai tanggal tidak valid:", dateValue);
+                            return false; // Jangan sertakan transaksi ini
+                        }
+                        // Anda bisa juga mengonversi t.date ke format ISO string di sini
+                        // atau pastikan dateObject.toISOString() tidak akan gagal
+                        t.date = dateObject.toISOString(); // Normalisasi format tanggal
+                        return true; // Sertakan transaksi yang valid
+                    });
 
                     // Save to local storage
                     localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions));
@@ -1389,6 +1407,22 @@
                 } else {
                     // Fall back to local storage
                     transactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
+                    
+                    // Lakukan validasi yang sama untuk data lokal
+                    transactions = transactions.filter(t => {
+                        const dateValue = t.date;
+                        if (!dateValue) {
+                            console.warn("Transaksi lokal dengan ID", t.id, "memiliki nilai tanggal yang kosong atau null.");
+                            return false;
+                        }
+                        const dateObject = new Date(dateValue);
+                        if (isNaN(dateObject.getTime())) {
+                            console.warn("Transaksi lokal dengan ID", t.id, "memiliki nilai tanggal tidak valid:", dateValue);
+                            return false;
+                        }
+                        t.date = dateObject.toISOString(); // Normalisasi
+                        return true;
+                    });
                     console.log('Menggunakan data transaksi lokal.');
                 }
 
@@ -1396,243 +1430,49 @@
                 loadDashboard();
             } catch (error) {
                 console.error("Error fetching transactions:", error);
-                // Fall back to local storage
+                // Fall back to local storage dan coba load lagi
                 transactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
+                transactions = transactions.filter(t => { // Validasi juga data lokal di sini jika error terjadi
+                    const dateValue = t.date;
+                    if (!dateValue) return false;
+                    const dateObject = new Date(dateValue);
+                    return !isNaN(dateObject.getTime());
+                });
+                localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions)); // Simpan kembali yang sudah divalidasi
+                
                 loadHistory();
                 loadDashboard();
                 alert("Gagal memuat transaksi dari database. Menggunakan data lokal. (Error: " + error.message + ")"); // Notifikasi lebih spesifik
             }
         }
 
-        // Fetch pending transactions from Firebase or local storage
-        async function fetchPendingTransactions() {
-            try {
-                if (isOnline && settings.syncEnabled) {
-                    const pendingCol = db.collection('pendingTransactions');
-                    const snapshot = await pendingCol.get({ source: 'server' });
-                    pendingTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                    // Save to local storage
-                    localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(pendingTransactions));
-                    console.log("Transaksi pending berhasil diambil dari Firebase."); // LOG SUCCESS
-                } else {
-                    // Fall back to local storage
-                    pendingTransactions = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
-                    console.log('Menggunakan data transaksi pending lokal.');
-                }
-
-                updatePendingCount();
-                loadDashboard();
-            } catch (error) {
-                console.error("Error fetching pending transactions:", error);
-                // Fall back to local storage
-                pendingTransactions = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
-                updatePendingCount();
-                loadDashboard();
-                alert("Gagal memuat transaksi pending dari database. Menggunakan data lokal. (Error: " + error.message + ")"); // Notifikasi lebih spesifik
-            }
-        }
-
-        // Save product to Firebase and local storage
-        async function saveProductToFirestore(productData, productId = null) {
-            try {
-                productData.updatedAt = new Date().toISOString();
-
-                let currentId = productId;
-                if (!currentId) {
-                    currentId = generateId();
-                    productData.createdAt = new Date().toISOString();
-                } else {
-                    const existingProduct = products.find(p => p.id === currentId);
-                    if (existingProduct) {
-                        productData.createdAt = existingProduct.createdAt || new Date().toISOString();
-                    } else {
-                        productData.createdAt = new Date().toISOString();
-                    }
-                }
-                
-                let localProducts = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
-                const existingIndex = localProducts.findIndex(p => p.id === currentId);
-                if (existingIndex !== -1) {
-                    localProducts[existingIndex] = { ...localProducts[existingIndex], ...productData, id: currentId };
-                } else {
-                    localProducts.push({ ...productData, id: currentId });
-                }
-                localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(localProducts));
-
-
-                if (isOnline && settings.syncEnabled) {
-                    try {
-                        const productsCol = db.collection('products');
-                        await productsCol.doc(currentId).set(productData, { merge: true });
-                        console.log("Produk berhasil disimpan ke Firebase:", currentId);
-                    } catch (firebaseErr) {
-                        console.error("Firebase Error: Gagal menyimpan produk ke Firestore. Akan tetap di lokal:", firebaseErr);
-                        alert("Gagal menyimpan produk ke Firebase. Data akan tetap disimpan secara lokal. Error: " + firebaseErr.message);
-                    }
-                } else {
-                    console.log("Offline: Produk disimpan ke penyimpanan lokal saja.");
-                    alert("Produk disimpan secara lokal karena tidak ada koneksi internet atau sinkronisasi dinonaktifkan.");
-                }
-
-                await fetchProducts(); 
-                return true;
-            } catch (error) {
-                console.error("Critical Error in saveProductToFirestore:", error);
-                alert("Terjadi kesalahan fatal saat menyimpan produk. Periksa konsol untuk detail.");
-                return false;
-            }
-        }
-
-        // Delete product from Firebase and local storage
-        async function deleteProductFromFirestore(productId) {
-            try {
-                let localProducts = JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY)) || [];
-                localProducts = localProducts.filter(p => p.id !== productId);
-                localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(localProducts));
-
-                if (isOnline && settings.syncEnabled) {
-                    try {
-                        await db.collection('products').doc(productId).delete();
-                        console.log("Produk berhasil dihapus dari Firebase:", productId);
-                    } catch (firebaseErr) {
-                        console.error("Firebase Error: Gagal menghapus produk dari Firestore. Akan tetap di lokal:", firebaseErr);
-                        alert("Gagal menghapus produk dari Firebase. Data akan tetap dihapus secara lokal. Error: " + firebaseErr.message);
-                    }
-                } else {
-                    console.log("Offline: Produk dihapus dari penyimpanan lokal saja.");
-                    alert("Produk dihapus secara lokal karena tidak ada koneksi internet atau sinkronisasi dinonaktifkan.");
-                }
-
-                await fetchProducts();
-                return true;
-            } catch (error) {
-                console.error("Critical Error in deleteProductFromFirestore:", error);
-                alert("Terjadi kesalahan fatal saat menghapus produk. Periksa konsol untuk detail.");
-                return false;
-            }
-        }
-
-        // Save transaction to Firebase and local storage
-        async function saveTransactionToFirestore(transactionData) {
-            try {
-                transactionData.id = transactionData.id || generateId();
-                transactionData.date = transactionData.date || new Date().toISOString();
-                transactionData.updatedAt = new Date().toISOString();
-
-                const localTransactions = JSON.parse(localStorage.getItem(LOCAL_TRANSACTIONS_KEY)) || [];
-                localTransactions.push(transactionData);
-                localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(localTransactions));
-
-                if (isOnline && settings.syncEnabled) {
-                    try {
-                        await db.collection('transactions').doc(transactionData.id).set(transactionData);
-                        console.log("Transaksi berhasil disimpan ke Firebase:", transactionData.id);
-                    } catch (firebaseErr) {
-                        console.error("Firebase Error: Gagal menyimpan transaksi ke Firestore. Akan tetap di lokal:", firebaseErr);
-                        alert("Gagal menyimpan transaksi ke Firebase. Data akan tetap disimpan secara lokal. Error: " + firebaseErr.message);
-                    }
-                } else {
-                    console.log("Offline: Transaksi disimpan ke penyimpanan lokal saja.");
-                    alert("Transaksi disimpan secara lokal karena tidak ada koneksi internet atau sinkronisasi dinonaktifkan.");
-                }
-
-                await fetchTransactions();
-                return true;
-            } catch (error) {
-                console.error("Critical Error in saveTransactionToFirestore:", error);
-                alert("Terjadi kesalahan fatal saat menyimpan transaksi. Periksa konsol untuk detail.");
-                return false;
-            }
-        }
-
-        // Save pending transaction to Firebase and local storage
-        async function savePendingTransactionToFirestore(transactionData, pendingId = null) {
-            try {
-                let currentId = pendingId;
-                if (!currentId) {
-                    currentId = generateId();
-                    transactionData.date = new Date().toISOString();
-                }
-                transactionData.updatedAt = new Date().toISOString();
-
-                const localPending = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
-                const existingIndex = localPending.findIndex(t => t.id === currentId);
-
-                if (existingIndex !== -1) {
-                    localPending[existingIndex] = { ...localPending[existingIndex], ...transactionData, id: currentId };
-                } else {
-                    localPending.push({ ...transactionData, id: currentId });
-                }
-
-                localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(localPending));
-
-                if (isOnline && settings.syncEnabled) {
-                    try {
-                        const pendingCol = db.collection('pendingTransactions');
-                        await pendingCol.doc(currentId).set(transactionData, { merge: true });
-                        console.log("Transaksi pending berhasil disimpan ke Firebase:", currentId);
-                    } catch (firebaseErr) {
-                        console.error("Firebase Error: Gagal menyimpan transaksi pending ke Firestore. Akan tetap di lokal:", firebaseErr);
-                        alert("Gagal menyimpan transaksi pending ke Firebase. Data akan tetap disimpan secara lokal. Error: " + firebaseErr.message);
-                    }
-                } else {
-                    console.log("Offline: Transaksi pending disimpan ke penyimpanan lokal saja.");
-                    alert("Transaksi pending disimpan secara lokal karena tidak ada koneksi internet atau sinkronisasi dinonaktifkan.");
-                }
-
-                await fetchPendingTransactions();
-                return true;
-            } catch (error) {
-                console.error("Critical Error in savePendingTransactionToFirestore:", error);
-                alert("Terjadi kesalahan fatal saat menyimpan transaksi pending. Periksa konsol untuk detail.");
-                return false;
-            }
-        }
-
-        // Delete pending transaction from Firebase and local storage
-        async function deletePendingTransactionFromFirestore(pendingId) {
-            try {
-                let localPending = JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY)) || [];
-                localPending = localPending.filter(t => t.id !== pendingId);
-                localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(localPending));
-
-                if (isOnline && settings.syncEnabled) {
-                    try {
-                        await db.collection('pendingTransactions').doc(pendingId).delete();
-                        console.log("Transaksi pending berhasil dihapus dari Firebase:", pendingId);
-                    } catch (firebaseErr) {
-                        console.error("Firebase Error: Gagal menghapus transaksi pending dari Firestore. Akan tetap di lokal:", firebaseErr);
-                        alert("Gagal menghapus transaksi pending dari Firebase. Data akan tetap dihapus secara lokal. Error: " + firebaseErr.message);
-                    }
-                } else {
-                    console.log("Offline: Transaksi pending dihapus dari penyimpanan lokal saja.");
-                    alert("Transaksi pending dihapus secara lokal karena tidak ada koneksi internet atau sinkronisasi dinonaktifkan.");
-                }
-
-                await fetchPendingTransactions();
-                return true;
-            } catch (error) {
-                console.error("Critical Error in deletePendingTransactionFromFirestore:", error);
-                alert("Terjadi kesalahan fatal saat menghapus transaksi pending. Periksa konsol untuk detail.");
-                return false;
-            }
-        }
-
         // Load dashboard data
         function loadDashboard() {
+            // Pastikan `new Date()` yang digunakan untuk `today` selalu valid
             const today = new Date().toISOString().split('T')[0];
 
-            
-            const todayTransactions = transactions.filter(t => t && t.date && new Date(t.date).toISOString().split('T')[0] === today);
-            const todaySales = todayTransactions.reduce((sum, t) => sum + t.total, 0);
-            const todayProfit = todayTransactions.reduce((sum, t) => sum + t.profit, 0);
+            // Validasi pada saat filter
+            const todayTransactions = transactions.filter(t => {
+                if (!t || !t.date) { // Periksa apakah objek transaksi dan properti 'date' ada
+                    console.warn("Melewatkan transaksi karena objek atau tanggal tidak valid:", t);
+                    return false;
+                }
+                const transactionDate = new Date(t.date);
+                if (isNaN(transactionDate.getTime())) { // Periksa validitas objek Date
+                    console.warn("Melewatkan transaksi karena nilai tanggal tidak valid:", t.date);
+                    return false;
+                }
+                return transactionDate.toISOString().split('T')[0] === today;
+            });
+            const todaySales = todayTransactions.reduce((sum, t) => sum + (t.total || 0), 0); // Pastikan total juga valid
+            const todayProfit = todayTransactions.reduce((sum, t) => sum + (t.profit || 0), 0); // Pastikan profit juga valid
 
             todaySalesElement.textContent = formatCurrency(todaySales);
             todayProfitElement.textContent = formatCurrency(todayProfit);
             totalProductsElement.textContent = products.length;
             pendingTransactionsElement.textContent = pendingTransactions.length;
         }
+
 
         // Load products based on view (list or grid)
         function loadProducts(searchTerm = '', view = 'list') {
@@ -1826,20 +1666,28 @@
             const transactionIndex = transactions.findIndex(t => t.id === transactionId);
             if (transactionIndex !== -1) {
                 transactions[transactionIndex].total = newTotal;
+                // You might also want to update profit, or mark it as needing recalculation
+                // For a more robust solution, you'd edit individual items in a modal
+                // and then recalculate total and profit based on those edited items.
+                
+                // Update timestamp for sync
                 transactions[transactionIndex].updatedAt = new Date().toISOString();
 
+                // Save to local storage
                 localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(transactions));
 
+                // Attempt to save to Firebase
                 if (isOnline && settings.syncEnabled) {
                     try {
                         await db.collection('transactions').doc(transactionId).update({
                             total: newTotal,
                             updatedAt: transactions[transactionIndex].updatedAt
+                            // If you want to update profit: profit: newProfit
                         });
                         alert('Perubahan riwayat transaksi berhasil disimpan (data lokal & online diperbarui).');
-                    } catch (firebaseErr) {
-                        console.error("Firebase Error: Gagal memperbarui transaksi di Firestore:", firebaseErr);
-                        alert('Gagal menyimpan perubahan riwayat transaksi ke database. Data disimpan secara lokal. Error: ' + firebaseErr.message);
+                    } catch (error) {
+                        console.error("Error updating transaction in Firestore:", error);
+                        alert('Gagal menyimpan perubahan riwayat transaksi ke database. Data disimpan secara lokal.');
                     }
                 } else {
                     alert('Perubahan riwayat transaksi berhasil disimpan (data lokal diperbarui). Tidak ada koneksi internet atau sinkronisasi dinonaktifkan.');
@@ -1869,7 +1717,7 @@
 
             row.classList.remove('edit-row');
             editingTransactionId = null;
-            loadDashboard();
+            loadDashboard(); // Refresh dashboard data
         }
 
         function cancelEditHistory(transactionId, row) {
@@ -2123,25 +1971,21 @@
 
             // Update stock for each product in the transaction
             let allStockUpdatesSuccessful = true;
-            // Gunakan promise.all untuk memastikan semua update stok selesai
-            const stockUpdatePromises = currentTransaction.items.map(async (item) => {
+            for (const item of currentTransaction.items) {
                 const product = products.find(p => p.id === item.productId);
                 if (product) {
                     const newStock = product.stock - item.kuantitas;
-                    // saveProductToFirestore sekarang menangani notifikasi errornya sendiri
+                    // Only update stock in Firebase if online, otherwise it's handled by local storage and sync
                     const success = await saveProductToFirestore({ stock: newStock }, product.id);
                     if (!success) {
                         allStockUpdatesSuccessful = false;
+                        break;
                     }
-                    return success; // Mengembalikan status keberhasilan setiap update
                 }
-                return true; // Jika produk tidak ditemukan, anggap berhasil
-            });
-
-            await Promise.all(stockUpdatePromises); // Tunggu semua update stok selesai
+            }
 
             if (!allStockUpdatesSuccessful) {
-                alert("Gagal memperbarui stok salah satu produk. Transaksi tidak dapat diselesaikan.");
+                alert("Gagal memperbarui stok produk. Transaksi tidak dapat diselesaikan.");
                 return;
             }
 
@@ -2149,7 +1993,7 @@
             currentTransaction.date = new Date().toISOString();
             const transactionSuccess = await saveTransactionToFirestore(currentTransaction);
             if (!transactionSuccess) {
-                alert("Gagal menyimpan transaksi."); // saveTransactionToFirestore sudah memberikan alert lebih spesifik
+                alert("Gagal menyimpan transaksi.");
                 return;
             }
 
@@ -2428,8 +2272,7 @@
                 saveProductBtn.classList.add('btn-primary');
                 saveProductBtn.disabled = false;
                 cancelEditBtn.style.display = 'none';
-                productImagePreview.src = ''; // Bersihkan preview gambar
-                productImagePreviewContainer.style.display = 'none'; // Sembunyikan container preview
+                productImagePreviewContainer.style.display = 'none';
             } else {
                 saveProductBtn.textContent = 'Simpan Produk';
                 saveProductBtn.disabled = false;
@@ -2440,7 +2283,7 @@
         async function uploadImageToCloudinary(file) {
             // Check for placeholder values
             if (CLOUDINARY_CLOUD_NAME === 'ganti_dengan_cloud_name_anda' || CLOUDINARY_UPLOAD_PRESET === 'ganti_dengan_upload_preset_anda') {
-                throw new Error('Konfigurasi Cloudinary tidak ditemukan. Harap perbarui CLOUDINARY_CLOUD_NAME dan CLOUDINARY_UPLOAD_PRESET di kode.');
+                throw new Error('Cloudinary configuration is missing. Please update CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET in the code.');
             }
 
             const formData = new FormData();
@@ -2457,13 +2300,13 @@
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Upload gagal: ${errorData.error.message || response.statusText}`);
+                    throw new Error(`Upload failed: ${errorData.error.message || response.statusText}`);
                 }
 
                 const data = await response.json();
                 return data.secure_url;
             } catch (error) {
-                console.error('Kesalahan unggah Cloudinary:', error);
+                console.error('Cloudinary upload error:', error);
                 throw error;
             }
         }
@@ -2739,6 +2582,10 @@
             }, 0);
             const grossProfit = totalSales - totalPurchases;
 
+            doc.setFontSize(12);
+            doc.text(`Ringkasan:`, margin, currentY);
+            currentY += 5; // space before table
+
             doc.autoTable({
                 head: [['Metrik', 'Nilai']],
                 body: [
@@ -2936,23 +2783,17 @@
                         if (data.products && confirm('Restore data produk? Ini akan menghapus dan menimpa SEMUA produk di database. Pastikan Anda memahami risikonya.')) {
                             // Clear existing products in Firebase
                             if (isOnline && settings.syncEnabled) {
-                                try {
-                                    const existingProductRefs = await db.collection('products').listDocuments();
-                                    const deletePromises = existingProductRefs.map(docRef => docRef.delete());
-                                    await Promise.all(deletePromises);
-                                    // Add restored products with their original IDs (or new if original causes conflicts)
-                                    const addPromises = data.products.map(product => {
-                                        // Use set() to preserve original IDs. If IDs might conflict (e.g. if generated by Firebase .add() originally),
-                                        // you might want to remove the 'id' field and use .add() again.
-                                        // For simplicity and assuming IDs are unique/manageable, we'll try to set with original ID.
-                                        return db.collection('products').doc(product.id).set(product);
-                                    });
-                                    await Promise.all(addPromises);
-                                    console.log("Produk berhasil di-restore ke Firebase.");
-                                } catch (firebaseErr) {
-                                    console.error("Firebase Error: Gagal restore produk ke Firestore:", firebaseErr);
-                                    alert("Gagal restore produk ke Firebase. Data akan tetap di-restore secara lokal. Error: " + firebaseErr.message);
-                                }
+                                const existingProductRefs = await db.collection('products').listDocuments();
+                                const deletePromises = existingProductRefs.map(docRef => docRef.delete());
+                                await Promise.all(deletePromises);
+                                // Add restored products with their original IDs (or new if original causes conflicts)
+                                const addPromises = data.products.map(product => {
+                                    // Use set() to preserve original IDs. If IDs might conflict (e.g. if generated by Firebase .add() originally),
+                                    // you might want to remove the 'id' field and use .add() again.
+                                    // For simplicity and assuming IDs are unique/manageable, we'll try to set with original ID.
+                                    return db.collection('products').doc(product.id).set(product);
+                                });
+                                await Promise.all(addPromises);
                             }
                             localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(data.products));
                             products = data.products; // Update in-memory
@@ -2962,19 +2803,13 @@
                         // Restore transactions
                         if (data.transactions && confirm('Restore data transaksi? Ini akan menghapus dan menimpa SEMUA transaksi di database. Pastikan Anda memahami risikonya.')) {
                             if (isOnline && settings.syncEnabled) {
-                                try {
-                                    const existingTransactionRefs = await db.collection('transactions').listDocuments();
-                                    const deletePromises = existingTransactionRefs.map(docRef => docRef.delete());
-                                    await Promise.all(deletePromises);
-                                    const addPromises = data.transactions.map(transaction => {
-                                        return db.collection('transactions').doc(transaction.id).set(transaction);
-                                    });
-                                    await Promise.all(addPromises);
-                                    console.log("Transaksi berhasil di-restore ke Firebase.");
-                                } catch (firebaseErr) {
-                                    console.error("Firebase Error: Gagal restore transaksi ke Firestore:", firebaseErr);
-                                    alert("Gagal restore transaksi ke Firebase. Data akan tetap di-restore secara lokal. Error: " + firebaseErr.message);
-                                }
+                                const existingTransactionRefs = await db.collection('transactions').listDocuments();
+                                const deletePromises = existingTransactionRefs.map(docRef => docRef.delete());
+                                await Promise.all(deletePromises);
+                                const addPromises = data.transactions.map(transaction => {
+                                    return db.collection('transactions').doc(transaction.id).set(transaction);
+                                });
+                                await Promise.all(addPromises);
                             }
                             localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(data.transactions));
                             transactions = data.transactions; // Update in-memory
@@ -2984,19 +2819,13 @@
                         // Restore pending transactions
                         if (data.pendingTransactions && confirm('Restore transaksi pending? Ini akan menghapus dan menimpa SEMUA transaksi pending di database. Pastikan Anda memahami risikonya.')) {
                             if (isOnline && settings.syncEnabled) {
-                                try {
-                                    const existingPendingRefs = await db.collection('pendingTransactions').listDocuments();
-                                    const deletePromises = existingPendingRefs.map(docRef => docRef.delete());
-                                    await Promise.all(deletePromises);
-                                    const addPromises = data.pendingTransactions.map(pending => {
-                                        return db.collection('pendingTransactions').doc(pending.id).set(pending);
-                                    });
-                                    await Promise.all(addPromises);
-                                    console.log("Transaksi pending berhasil di-restore ke Firebase.");
-                                } catch (firebaseErr) {
-                                    console.error("Firebase Error: Gagal restore transaksi pending ke Firestore:", firebaseErr);
-                                    alert("Gagal restore transaksi pending ke Firebase. Data akan tetap di-restore secara lokal. Error: " + firebaseErr.message);
-                                }
+                                const existingPendingRefs = await db.collection('pendingTransactions').listDocuments();
+                                const deletePromises = existingPendingRefs.map(docRef => docRef.delete());
+                                await Promise.all(deletePromises);
+                                const addPromises = data.pendingTransactions.map(pending => {
+                                    return db.collection('pendingTransactions').doc(pending.id).set(pending);
+                                });
+                                await Promise.all(addPromises);
                             }
                             localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(data.pendingTransactions));
                             pendingTransactions = data.pendingTransactions; // Update in-memory
@@ -3077,7 +2906,7 @@
                             });
                             console.log('Struk berhasil dibagikan');
                         } catch (error) {
-                            console.error('Kesalahan berbagi:', error);
+                            console.error('Error sharing:', error);
                             alert('Gagal berbagi struk. Fitur ini mungkin tidak didukung di perangkat atau browser Anda. Silakan download secara manual.');
                             const imageDataUrl = canvas.toDataURL('image/png');
                             const downloadLink = document.createElement('a');
@@ -3099,7 +2928,7 @@
                     }
                 }, 'image/png');
             }).catch(error => {
-                console.error('Kesalahan menghasilkan gambar struk:', error);
+                console.error('Error generating receipt image:', error);
                 alert('Gagal membuat gambar struk. Silakan coba lagi.');
                 if (modalFooter) modalFooter.classList.remove('d-none');
             });
@@ -3280,26 +3109,11 @@
             const sidebarNav = document.getElementById('sidebar-nav');
 
             if (sidebarToggle && wrapper) {
-                sidebarToggle.addEventListener('click', (event) => {
-                    event.stopPropagation(); // Penting: Hentikan propagasi event agar tidak ada elemen lain yang menangkap klik
+                sidebarToggle.addEventListener('click', () => {
                     wrapper.classList.toggle('toggled');
-                    console.log("Sidebar toggled. Current state:", wrapper.classList.contains('toggled') ? 'open' : 'closed');
                 });
             }
 
-            // Tambahkan ini agar saat mengklik di luar sidebar di mode seluler, sidebar tertutup
-            if (wrapper) {
-                wrapper.addEventListener('click', (event) => {
-                    const sidebar = document.querySelector('.sidebar'); // Dapatkan elemen sidebar
-                    // Jika sidebar terbuka dan klik dilakukan di luar sidebar itu sendiri DAN bukan pada tombol toggle
-                    if (wrapper.classList.contains('toggled') && sidebar && !sidebar.contains(event.target) && event.target !== sidebarToggle) {
-                        wrapper.classList.remove('toggled');
-                        console.log("Clicked outside, sidebar closed.");
-                    }
-                });
-            }
-
-            // ... (bagian event listener untuk nav-link tetap seperti sebelumnya)
             if (sidebarNav && wrapper) {
                 sidebarNav.querySelectorAll('.nav-link').forEach(link => {
                     link.addEventListener('click', () => {
@@ -3370,8 +3184,10 @@ document.getElementById('download-report-pdf').addEventListener('click', functio
 </script>
 
 <script>
-// Bagian ini adalah script yang tidak perlu lagi karena fungsinya sudah diintegrasikan ke script utama.
-// Pastikan bagian ini DIHAPUS atau DIKOMENTARI di file Anda.
+// The functions below (`enableEditTransaction`, `saveEditedItem`, `deleteTransaction`, `loadHistory` helper for edit/delete)
+// were duplicated or partly redundant with the main `loadHistory` and new `editHistory` in the main script.
+// To avoid confusion and potential conflicts, I've commented out the duplicated/redundant ones.
+// The primary `editHistory` and its related `saveEditedHistory`/`cancelEditHistory` in the main script are the correct ones to use.
 /*
 function enableEditTransaction(transactionId) {
     const transaction = transactions.find(t => t.id === transactionId);
